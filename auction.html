@@ -94,20 +94,17 @@
     </style>
 </head>
 <body class="min-h-screen">
-    <!-- Background Music -->
-<audio id="bgMusic" loop>
-    <source src="https://files.catbox.moe/ooc5ng.mp3" type="audio/mpeg">
-</audio>
+    
+<!-- Background Music Player (Playlist enabled) -->
+<audio id="bgMusic"></audio> 
 
-<!-- Auction Start SFX (High Energy) -->
-<audio id="startSfx">
-    <source src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" type="audio/mpeg">
-</audio>
+<!-- Special Admin Triggered Tracks -->
+<audio id="introMusic" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"></audio>
+<audio id="hypeMusic" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3"></audio>
 
-<!-- Sold Out SFX (Hammer/Success) -->
-<audio id="soldSfx">
-    <source src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3" type="audio/mpeg">
-</audio>
+<!-- SFX -->
+<audio id="startSfx" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"></audio>
+<audio id="soldSfx" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
 
 <!-- Volume Alert Popup (Small) -->
 <div id="volumePopup" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -661,73 +658,99 @@ function startApp() {
         socket.emit('getAuthorizedUsers'); // Fetch user list
     }
 }
-        // --- ADVANCED MUSIC SYSTEM ---
-const bgMusic = document.getElementById('bgMusic');
-const startSfx = document.getElementById('startSfx');
-const soldSfx = document.getElementById('soldSfx');
-const musicIcon = document.getElementById('musicIcon');
+        // --- DYNAMIC PLAYLIST SYSTEM ---
 
-let lastPlayerId = null; // Track to prevent sound looping
+// 1. ADD YOUR SONG LINKS HERE
+const bgPlaylist = [
+    "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+    "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+    "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+    "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+];
 
+let currentPlaylistIndex = 0;
+const bgAudio = document.getElementById('bgMusic');
+
+const tracks = {
+    normal: bgAudio,
+    intro: document.getElementById('introMusic'),
+    hype: document.getElementById('hypeMusic')
+};
+
+let activeMode = 'normal'; // tracks if we are in 'normal', 'intro', or 'hype'
+
+// Initialize Playlist
+function loadPlaylistSong(index) {
+    bgAudio.src = bgPlaylist[index];
+    bgAudio.load();
+}
+
+// Automatically play next song when one ends
+bgAudio.onended = function() {
+    if (activeMode === 'normal') {
+        currentPlaylistIndex = (currentPlaylistIndex + 1) % bgPlaylist.length;
+        loadPlaylistSong(currentPlaylistIndex);
+        bgAudio.play();
+    }
+};
+
+function switchTrack(newMode) {
+    activeMode = newMode;
+
+    // Pause all
+    Object.values(tracks).forEach(t => {
+        t.pause();
+        // Don't reset currentTime for bgAudio so it stays on the same song
+        if (t !== bgAudio) t.currentTime = 0; 
+    });
+
+    if (newMode === 'normal') {
+        if (!bgAudio.src) loadPlaylistSong(currentPlaylistIndex);
+        bgAudio.volume = 0.2;
+        bgAudio.play().catch(e => console.log("Interaction needed"));
+    } else {
+        const specialTrack = tracks[newMode];
+        specialTrack.volume = 0.3;
+        specialTrack.play().catch(e => console.log("Interaction needed"));
+    }
+}
+
+// --- ADMIN COMMAND LISTENERS (Sync across all users) ---
+socket.on('clientEvent_PlayIntro', () => switchTrack('intro'));
+socket.on('clientEvent_PlayHype', () => switchTrack('hype'));
+socket.on('clientEvent_PlayNormal', () => switchTrack('normal'));
+
+// Updated Start Audio function for the Volume Popup
 function startAuctionAudio() {
-    bgMusic.volume = 0.2; // Keep background music low
-    bgMusic.play().catch(e => console.log("Audio play blocked"));
+    loadPlaylistSong(currentPlaylistIndex);
+    switchTrack('normal'); 
     document.getElementById('volumePopup').classList.add('hidden');
     document.getElementById('musicToggle').classList.remove('hidden');
 }
 
-// Logic to play specific sounds based on server updates
-socket.on('updateAuction', (state) => {
-    if (!state) return;
-
-    // 1. DETECT AUCTION START
-    if (state.activePlayerId && state.activePlayerId._id !== lastPlayerId) {
-        lastPlayerId = state.activePlayerId._id;
-        playStartEffect();
-    }
-
-    // 2. DETECT SOLD OUT
-    // We check if finalCallText is "SOLD!" or if the player just became null while highestBidder existed
-    if (state.finalCallText === "SOLD!") {
-        playSoldEffect();
-        lastPlayerId = null; // Reset for next player
-    }
-});
-
+// --- SFX DUCKING LOGIC (For Start/Sold Events) ---
 function playStartEffect() {
-    // Duck the background music
-    bgMusic.volume = 0.05;
+    const currentTrack = (activeMode === 'normal') ? bgAudio : tracks[activeMode];
+    const originalVol = currentTrack.volume;
+    
+    currentTrack.volume = 0.05; // Duck volume
+    const startSfx = document.getElementById('startSfx');
     startSfx.currentTime = 0;
-    startSfx.volume = 0.8;
     startSfx.play();
     
-    // Bring background music back after 3 seconds
-    setTimeout(() => {
-        if (!bgMusic.paused) bgMusic.volume = 0.2;
-    }, 3000);
+    setTimeout(() => { currentTrack.volume = originalVol; }, 3000);
 }
 
 function playSoldEffect() {
-    // Duck the background music
-    bgMusic.volume = 0.05;
+    const currentTrack = (activeMode === 'normal') ? bgAudio : tracks[activeMode];
+    const originalVol = currentTrack.volume;
+
+    currentTrack.volume = 0.05; // Duck volume
+    const soldSfx = document.getElementById('soldSfx');
     soldSfx.currentTime = 0;
-    soldSfx.volume = 0.9;
     soldSfx.play();
 
-    // Bring background music back after 4 seconds
-    setTimeout(() => {
-        if (!bgMusic.paused) bgMusic.volume = 0.2;
-    }, 4000);
-}
-
-function toggleMusic() {
-    if (bgMusic.paused) {
-        bgMusic.play();
-        musicIcon.className = "fa-solid fa-volume-high";
-    } else {
-        bgMusic.pause();
-        musicIcon.className = "fa-solid fa-volume-xmark";
-    }
+    setTimeout(() => { currentTrack.volume = originalVol; }, 4000);
 }
 
     function generatePDF() {
