@@ -781,6 +781,15 @@ bgAudio.onended = function() {
     loadPlaylistSong(currentPlaylistIndex);
     bgAudio.play();
 };
+        bgAudio.onerror = function() {
+    console.error("❌ Song #" + (currentPlaylistIndex + 1) + " failed to load. Skipping...");
+    currentPlaylistIndex = (currentPlaylistIndex + 1) % bgPlaylist.length;
+    loadPlaylistSong(currentPlaylistIndex);
+    if (activeMode === 'normal') {
+        bgAudio.play().catch(e => console.log("Waiting for user interaction"));
+    }
+};
+        
 
 function stopAllMusic() {
     allAudioElements.forEach(audio => {
@@ -790,23 +799,21 @@ function stopAllMusic() {
 }
 
 function switchTrack(newMode) {
-    // 1. Force stop everything first
-    stopAllMusic();
+    activeMode = newMode;
+    stopAllMusic(); // Using the stopAllMusic function we created earlier
 
-    // 2. Play the requested mode
     if (newMode === 'normal') {
         if (!bgAudio.src) loadPlaylistSong(currentPlaylistIndex);
         bgAudio.volume = 0.2;
-        bgAudio.play().catch(e => console.log("Sound blocked"));
-    } else if (newMode === 'intro') {
-        introAudio.volume = 0.3;
-        introAudio.play().catch(e => console.log("Sound blocked"));
-    } else if (newMode === 'hype') {
-        hypeAudio.volume = 0.3;
-        hypeAudio.play().catch(e => console.log("Sound blocked"));
+        bgAudio.play().catch(e => console.log("Sound interaction required"));
+    } else {
+        const specialTrack = document.getElementById(newMode + 'Music');
+        if(specialTrack) {
+            specialTrack.volume = 0.3;
+            specialTrack.play().catch(e => console.log("Sound interaction required"));
+        }
     }
 }
-
 // --- FIXED MUTE TOGGLE ---
 function toggleMusic() {
     const musicIcon = document.getElementById('musicIcon');
