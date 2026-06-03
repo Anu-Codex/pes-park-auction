@@ -228,9 +228,9 @@
                         <h3 class="text-xl font-bold mb-6 flex items-center gap-3 text-white"><i class="fa-solid fa-plus-circle text-cyan-400"></i> Register New Legend</h3>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <input id="pName" type="text" placeholder="Name" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white">
-                            <input id="pStrength" type="number" placeholder="OVR" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white">
+                            <input id="pStrength" type="number" placeholder="Team Strength" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white">
                             <select id="pType" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white"><option>Epic</option><option>Showtime</option><option>Big Time</option><option>Standard</option></select>
-                            <input id="pBase" type="number" placeholder="Base (L)" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white">
+                            <input id="pBase" type="number" placeholder="Base (M)" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white">
                             <input id="pDiv" type="number" placeholder="Div / Rank" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white">
                             <input id="pPhone" type="number" placeholder="Phone No" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white">
                             
@@ -293,7 +293,7 @@
     
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <input id="tName" type="text" placeholder="New Team Name" class="w-full bg-gray-900 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-yellow-400">
-        <input id="tBudget" type="number" placeholder="Starting Budget (L)" class="w-full bg-gray-900 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-yellow-400">
+        <input id="tBudget" type="number" placeholder="Starting Budget (M)" class="w-full bg-gray-900 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-yellow-400">
         <button onclick="handleAddTeam()" class="bg-yellow-500 text-black font-black py-4 rounded-2xl btn-premium uppercase">
             Create Team
         </button>
@@ -432,7 +432,7 @@ socket.on('updateTeams', (teams) => {
         mgmtDisplay.innerHTML = teams.map(t => `
             <tr class="hover:bg-white/5 transition border-b border-white/5">
                 <td class="p-4 text-white font-bold">${t.name}</td>
-                <td class="p-4 text-cyan-400 font-black">${t.budget}L</td>
+                <td class="p-4 text-cyan-400 font-black">${t.budget}M</td>
                 <td class="p-4 text-center">
                     <button onclick="confirmDeleteTeam('${t._id}', '${t.name}')" 
                             class="bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white p-2 rounded-lg transition-all transform hover:scale-110">
@@ -585,7 +585,7 @@ function startApp() {
                     <div class="flex flex-col items-center lg:items-start gap-6">
                         <div class="bid-box-prominent text-center lg:text-left min-w-[300px]">
                             <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Current evaluation</p>
-                            <p class="text-7xl font-black text-white">${state.currentBid}<span class="text-2xl text-cyan-400 ml-2">L</span></p>
+                            <p class="text-7xl font-black text-white">${state.currentBid}<span class="text-2xl text-cyan-400 ml-2">M</span></p>
                             <p class="text-2xl font-bold text-yellow-400 uppercase mt-4">${state.highestBidder || 'NO BIDS YET'}</p>
                         </div>
                         <div class="timer-prominent flex items-center gap-3">
@@ -596,9 +596,9 @@ function startApp() {
                 ${user && user.role === 'captain' ? `
                     <div class="mt-12 w-full max-w-2xl">
                         <div class="grid grid-cols-3 gap-6 mb-6">
-                            <button onclick="bid(1)" class="bg-gray-800 text-white p-6 rounded-3xl font-black border-2 border-white/5 text-xl ${isHighest || hasSkipped ? 'opacity-20 grayscale' : 'hover:border-cyan-400'}" ${isHighest || hasSkipped ? 'disabled' : ''}>+1L</button>
-                            <button onclick="bid(5)" class="bg-cyan-400 text-black p-6 rounded-3xl font-black text-xl ${isHighest || hasSkipped ? 'opacity-20 grayscale' : ''}" ${isHighest || hasSkipped ? 'disabled' : ''}>+5L</button>
-                            <button onclick="bid(10)" class="bg-cyan-400 text-black p-6 rounded-3xl font-black text-xl ${isHighest || hasSkipped ? 'opacity-20 grayscale' : ''}" ${isHighest || hasSkipped ? 'disabled' : ''}>+10L</button>
+                            <button onclick="bid(1)" class="bg-gray-800 text-white p-6 rounded-3xl font-black border-2 border-white/5 text-xl ${isHighest || hasSkipped ? 'opacity-20 grayscale' : 'hover:border-cyan-400'}" ${isHighest || hasSkipped ? 'disabled' : ''}>+1M</button>
+                            <button onclick="bid(5)" class="bg-cyan-400 text-black p-6 rounded-3xl font-black text-xl ${isHighest || hasSkipped ? 'opacity-20 grayscale' : ''}" ${isHighest || hasSkipped ? 'disabled' : ''}>+5M</button>
+                            <button onclick="bid(10)" class="bg-cyan-400 text-black p-6 rounded-3xl font-black text-xl ${isHighest || hasSkipped ? 'opacity-20 grayscale' : ''}" ${isHighest || hasSkipped ? 'disabled' : ''}>+10M</button>
                         </div>
                         <button onclick="skip()" class="w-full bg-red-600/10 text-red-500 border-2 border-red-600/30 py-4 rounded-3xl font-black uppercase tracking-[0.3em] ${hasSkipped ? 'hidden' : ''}">SKIP ROUND</button>
                     </div>` : ''}
