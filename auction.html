@@ -231,7 +231,7 @@
                             <input id="pStrength" type="number" placeholder="Current Div" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white">
                             <select id="pType" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white"><option>Epic</option><option>Showtime</option><option>Big Time</option><option>Standard</option></select>
                             <input id="pBase" type="number" placeholder="Base (M)" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white">
-                            <input id="pDiv" type="number" placeholder="Div / Rank" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white">
+                            <input id="pDiv" type="number" placeholder="Rank" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white">
                             <input id="pPhone" type="number" placeholder="Phone No" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white">
                             
                             <div class="col-span-2 space-y-1">
@@ -506,8 +506,8 @@ function startApp() {
         document.getElementById('playerList').innerHTML = players.map(p => `
             <tr class="hover:bg-white/5 border-b border-white/5 group transition-colors">
                 <td class="p-6 font-bold text-white group-hover:text-cyan-400 transition">${p.name}</td>
-                <td class="p-6 text-gray-400 font-bold">${p.strength}</td>
-                <td class="p-4 font-bold text-cyan-400">Div ${p.division || 'N/A'}</td> 
+                <td class="p-6 text-gray-400 font-bold">Div ${p.strength}</td>
+                <td class="p-4 font-bold text-cyan-400">Rank ${p.division || 'N/A'}</td> 
                 <td class="p-4 text-gray-500">${p.phone || 'N/A'}</td>
                 <td class="p-6"><span class="px-3 py-1 rounded-lg text-[10px] font-black border border-white/10 bg-gray-800 tracking-widest uppercase">${p.cardType}</span></td>
                 <td class="p-6 font-black uppercase text-[10px] tracking-widest ${p.status === 'Available' ? 'text-cyan-400' : 'text-red-500'}">${p.status}</td>
