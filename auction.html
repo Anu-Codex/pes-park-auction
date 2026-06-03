@@ -417,7 +417,7 @@ socket.on('updateTeams', (teams) => {
     // 1. Update the sidebar budget list
     renderTeams(teams);
 
-    // 2. Update the Admin Team Management Table
+    // 2. Update the Admin Management Table rows
     const mgmtDisplay = document.getElementById('teamManagementDisplay');
     if (mgmtDisplay) {
         mgmtDisplay.innerHTML = teams.map(t => `
@@ -425,7 +425,7 @@ socket.on('updateTeams', (teams) => {
                 <td class="p-4 text-white font-bold">${t.name}</td>
                 <td class="p-4 text-cyan-400 font-black">${t.budget}L</td>
                 <td class="p-4 text-center">
-                    <button onclick="if(confirm('Delete ${t.name}?')) socket.emit('deleteTeam', '${t._id}')" class="text-red-500 hover:text-white transition">
+                    <button onclick="if(confirm('Delete ${t.name}?')) socket.emit('deleteTeam', '${t._id}')" class="text-red-500 hover:text-white transition-all transform hover:scale-110">
                         <i class="fa-solid fa-trash-can"></i>
                     </button>
                 </td>
@@ -446,12 +446,12 @@ function startApp() {
         document.getElementById('adminControls').classList.remove('hidden');
         document.getElementById('adminPlayerForm').classList.remove('hidden');
         document.getElementById('adminBonusPanel').classList.remove('hidden');
+        document.getElementById('adminUserManagement').classList.remove('hidden'); 
         
-        // --- ADD THESE TWO LINES SPECIFICALLY ---
-        document.getElementById('adminUserManagement').classList.remove('hidden');
+        // --- THIS WAS THE MISSING LINE ---
         document.getElementById('adminTeamManagement').classList.remove('hidden'); 
         
-        socket.emit('getAuthorizedUsers');
+        socket.emit('getAuthorizedUsers'); 
     }
 }
 
@@ -711,20 +711,13 @@ socket.on('authorizedUsersList', (users) => {
 });
 
 // Update startApp to load users and show the div
-function startApp() {
-    if(!user) return;
-    document.getElementById('authOverlay').classList.add('hidden');
-    document.getElementById('dashboard').classList.remove('hidden');
-    document.getElementById('userName').innerText = user.name;
-    document.getElementById('userRole').innerText = user.role;
-    
-    if (user.role === 'admin') {
-        document.getElementById('adminControls').classList.remove('hidden');
-        document.getElementById('adminPlayerForm').classList.remove('hidden');
-        document.getElementById('adminBonusPanel').classList.remove('hidden');
-        document.getElementById('adminUserManagement').classList.remove('hidden'); // SHOW MANAGEMENT
-        socket.emit('getAuthorizedUsers'); // Fetch user list
-    }
+function handleAddTeam() {
+    const name = document.getElementById('tName').value.trim();
+    const budget = document.getElementById('tBudget').value;
+    if (!name || !budget) return alert("Enter both Team Name and Budget!");
+    socket.emit('createNewTeam', { name, budget });
+    document.getElementById('tName').value = '';
+    document.getElementById('tBudget').value = '';
 }
         // --- DYNAMIC PLAYLIST SYSTEM ---
 
