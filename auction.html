@@ -414,19 +414,19 @@ function handleAddTeam() {
 
 // Update the updateTeams listener to also update the management table
 socket.on('updateTeams', (teams) => {
-    // 1. Update the original Sidebar Purse list (existing code)
+    // 1. Update the sidebar budget list
     renderTeams(teams);
 
-    // 2. Update the Admin Management Table
+    // 2. Update the Admin Team Management Table
     const mgmtDisplay = document.getElementById('teamManagementDisplay');
     if (mgmtDisplay) {
         mgmtDisplay.innerHTML = teams.map(t => `
             <tr class="hover:bg-white/5 transition">
-                <td class="p-4 text-white">${t.name}</td>
-                <td class="p-4 text-yellow-400">${t.budget}L</td>
+                <td class="p-4 text-white font-bold">${t.name}</td>
+                <td class="p-4 text-cyan-400 font-black">${t.budget}L</td>
                 <td class="p-4 text-center">
                     <button onclick="if(confirm('Delete ${t.name}?')) socket.emit('deleteTeam', '${t._id}')" class="text-red-500 hover:text-white transition">
-                        <i class="fa-solid fa-trash"></i>
+                        <i class="fa-solid fa-trash-can"></i>
                     </button>
                 </td>
             </tr>
@@ -446,14 +446,12 @@ function startApp() {
         document.getElementById('adminControls').classList.remove('hidden');
         document.getElementById('adminPlayerForm').classList.remove('hidden');
         document.getElementById('adminBonusPanel').classList.remove('hidden');
+        
+        // --- ADD THESE TWO LINES SPECIFICALLY ---
         document.getElementById('adminUserManagement').classList.remove('hidden');
-        document.getElementById('adminMusicConsole').classList.remove('hidden');
-        document.getElementById('adminTeamManagement').classList.remove('hidden'); // NEW
-        socket.emit('getAuthorizedUsers'); 
-    } else {
-        // Force hide them if a non-admin is logged in
-        document.getElementById('adminTeamManagement').classList.add('hidden');
-        document.getElementById('adminUserManagement').classList.add('hidden');
+        document.getElementById('adminTeamManagement').classList.remove('hidden'); 
+        
+        socket.emit('getAuthorizedUsers');
     }
 }
 
