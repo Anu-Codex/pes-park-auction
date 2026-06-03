@@ -217,7 +217,7 @@
                         <div class="overflow-x-auto">
                             <table class="w-full text-left">
                                 <thead class="bg-black/40 text-[10px] uppercase tracking-[0.2em] text-gray-500">
-                                    <tr><th class="p-6">Player Identity</th><th class="p-6">Team Strength</th><th class="p-6">Div/Rank</th><th class="p-6">Phone</th><th class="p-6">Tier</th><th class="p-6">Status</th><th class="p-6">Base Value</th><th class="p-6 text-center">Operation</th></tr>
+                                    <tr><th class="p-6">Player Identity</th><th class="p-6">Div</th><th class="p-6">Rank</th><th class="p-6">Phone</th><th class="p-6">Tier</th><th class="p-6">Status</th><th class="p-6">Base Value</th><th class="p-6 text-center">Operation</th></tr>
                                 </thead>
                                 <tbody id="playerList" class="text-sm divide-y divide-white/5"></tbody>
                             </table>
@@ -228,7 +228,7 @@
                         <h3 class="text-xl font-bold mb-6 flex items-center gap-3 text-white"><i class="fa-solid fa-plus-circle text-cyan-400"></i> Register New Legend</h3>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <input id="pName" type="text" placeholder="Name" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white">
-                            <input id="pStrength" type="number" placeholder="Team Strength" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white">
+                            <input id="pStrength" type="number" placeholder="Current Div" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white">
                             <select id="pType" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white"><option>Epic</option><option>Showtime</option><option>Big Time</option><option>Standard</option></select>
                             <input id="pBase" type="number" placeholder="Base (M)" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white">
                             <input id="pDiv" type="number" placeholder="Div / Rank" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white">
@@ -877,7 +877,7 @@ function playSoldEffect() {
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
         doc.text("PES PARK REPORT", 14, 20);
         const soldData = currentPlayers.filter(p => p.status === 'Sold').map(p => [p.name, p.strength, p.division, p.phone, p.soldTo]);
-        doc.autoTable({ startY: 30, head: [['Player', 'OVR', 'Div', 'Phone', 'Sold Status']], body: soldData });
+        doc.autoTable({ startY: 30, head: [['Player', 'Div', 'Rank', 'Phone', 'Sold Status']], body: soldData });
         doc.save('PES_PARK_Report.pdf');
     }
 
