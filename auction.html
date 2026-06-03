@@ -759,54 +759,72 @@ const bgPlaylist = [
     "https://files.catbox.moe/reaib1.mp3"
 ];
 
+// --- MASTER AUDIO CONTROLLER (FIXED) ---
 let currentPlaylistIndex = 0;
 const bgAudio = document.getElementById('bgMusic');
+const introAudio = document.getElementById('introMusic');
+const hypeAudio = document.getElementById('hypeMusic');
 
-const tracks = {
-    normal: bgAudio,
-    intro: document.getElementById('introMusic'),
-    hype: document.getElementById('hypeMusic')
-};
+const allAudioElements = [bgAudio, introAudio, hypeAudio];
 
-let activeMode = 'normal'; // tracks if we are in 'normal', 'intro', or 'hype'
-
-// Initialize Playlist
 function loadPlaylistSong(index) {
     bgAudio.src = bgPlaylist[index];
     bgAudio.load();
 }
 
-// Automatically play next song when one ends
+// Auto-play next song
 bgAudio.onended = function() {
-    if (activeMode === 'normal') {
-        currentPlaylistIndex = (currentPlaylistIndex + 1) % bgPlaylist.length;
-        loadPlaylistSong(currentPlaylistIndex);
-        bgAudio.play();
-    }
+    currentPlaylistIndex = (currentPlaylistIndex + 1) % bgPlaylist.length;
+    loadPlaylistSong(currentPlaylistIndex);
+    bgAudio.play();
 };
 
-function switchTrack(newMode) {
-    activeMode = newMode;
-
-    // Pause all
-    Object.values(tracks).forEach(t => {
-        t.pause();
-        // Don't reset currentTime for bgAudio so it stays on the same song
-        if (t !== bgAudio) t.currentTime = 0; 
+function stopAllMusic() {
+    allAudioElements.forEach(audio => {
+        audio.pause();
+        audio.currentTime = 0; // Reset to start
     });
+}
 
+function switchTrack(newMode) {
+    // 1. Force stop everything first
+    stopAllMusic();
+
+    // 2. Play the requested mode
     if (newMode === 'normal') {
         if (!bgAudio.src) loadPlaylistSong(currentPlaylistIndex);
         bgAudio.volume = 0.2;
-        bgAudio.play().catch(e => console.log("Interaction needed"));
-    } else {
-        const specialTrack = tracks[newMode];
-        specialTrack.volume = 0.3;
-        specialTrack.play().catch(e => console.log("Interaction needed"));
+        bgAudio.play().catch(e => console.log("Sound blocked"));
+    } else if (newMode === 'intro') {
+        introAudio.volume = 0.3;
+        introAudio.play().catch(e => console.log("Sound blocked"));
+    } else if (newMode === 'hype') {
+        hypeAudio.volume = 0.3;
+        hypeAudio.play().catch(e => console.log("Sound blocked"));
     }
 }
 
-// --- ADMIN COMMAND LISTENERS (Sync across all users) ---
+// --- FIXED MUTE TOGGLE ---
+function toggleMusic() {
+    const musicIcon = document.getElementById('musicIcon');
+    
+    // Check if ANY audio is currently playing
+    const isPlaying = allAudioElements.some(a => !a.paused);
+
+    if (isPlaying) {
+        // Stop everything
+        allAudioElements.forEach(a => a.pause());
+        musicIcon.className = "fa-solid fa-volume-xmark";
+        musicIcon.style.color = "#ff4444";
+    } else {
+        // Resume ONLY the background music playlist
+        bgAudio.play();
+        musicIcon.className = "fa-solid fa-volume-high";
+        musicIcon.style.color = "#00e5ff";
+    }
+}
+
+// Remote Listeners
 socket.on('clientEvent_PlayIntro', () => switchTrack('intro'));
 socket.on('clientEvent_PlayHype', () => switchTrack('hype'));
 socket.on('clientEvent_PlayNormal', () => switchTrack('normal'));
