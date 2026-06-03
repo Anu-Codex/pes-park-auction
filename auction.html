@@ -242,35 +242,7 @@
                         <button onclick="addPlayer()" class="mt-6 w-full ef-gradient text-black font-black py-4 rounded-2xl btn-premium uppercase">Deploy to Roster</button>
                     </div>
                 </div>
-                <!-- ADMIN FRANCHISE MANAGEMENT -->
-<div id="adminTeamManagement" class="hidden premium-glass rounded-[2rem] p-8 border border-yellow-500/20 mt-8">
-    <h3 class="text-xl font-bold mb-6 text-white uppercase tracking-widest flex items-center gap-3">
-        <i class="fa-solid fa-shield-halved text-yellow-400"></i> FRANCHISE MANAGEMENT
-    </h3>
-    
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <input id="tName" type="text" placeholder="New Team Name" class="w-full bg-gray-900 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-yellow-400">
-        <input id="tBudget" type="number" placeholder="Starting Budget (L)" class="w-full bg-gray-900 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-yellow-400">
-        <button onclick="handleAddTeam()" class="bg-yellow-500 text-black font-black py-4 rounded-2xl btn-premium uppercase">
-            Create Team
-        </button>
-    </div>
-
-    <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs uppercase font-bold tracking-widest text-gray-400">
-            <thead class="bg-black/40">
-                <tr>
-                    <th class="p-4">Franchise Name</th>
-                    <th class="p-4">Purse Value</th>
-                    <th class="p-4 text-center">Action</th>
-                </tr>
-            </thead>
-            <tbody id="teamManagementDisplay" class="divide-y divide-white/5">
-                <!-- Injected via socket -->
-            </tbody>
-        </table>
-    </div>
-</div>
+                
 
                 <!-- Right: Purses & Chat (KEPT SAME) -->
                 <div class="lg:col-span-4 space-y-8">
@@ -313,6 +285,35 @@
             <tbody id="userListDisplay" class="divide-y divide-white/5"></tbody>
         </table>
     </div>
+    <!-- ADMIN FRANCHISE MANAGEMENT -->
+<div id="adminTeamManagement" class="hidden premium-glass rounded-[2rem] p-8 border border-yellow-500/20 mt-8">
+    <h3 class="text-xl font-bold mb-6 text-white uppercase tracking-widest flex items-center gap-3">
+        <i class="fa-solid fa-shield-halved text-yellow-400"></i> FRANCHISE MANAGEMENT
+    </h3>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <input id="tName" type="text" placeholder="New Team Name" class="w-full bg-gray-900 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-yellow-400">
+        <input id="tBudget" type="number" placeholder="Starting Budget (L)" class="w-full bg-gray-900 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-yellow-400">
+        <button onclick="handleAddTeam()" class="bg-yellow-500 text-black font-black py-4 rounded-2xl btn-premium uppercase">
+            Create Team
+        </button>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs uppercase font-bold tracking-widest text-gray-400">
+            <thead class="bg-black/40">
+                <tr>
+                    <th class="p-4">Franchise Name</th>
+                    <th class="p-4">Purse Value</th>
+                    <th class="p-4 text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody id="teamManagementDisplay" class="divide-y divide-white/5">
+                <!-- Injected via socket -->
+            </tbody>
+        </table>
+    </div>
+</div>
                     <button onclick="generatePDF()" class="w-full bg-red-700/20 hover:bg-red-700 text-red-500 hover:text-white border border-red-500/20 p-5 rounded-[1.5rem] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-3"><i class="fa-solid fa-file-pdf"></i> Generate Final Report</button>
                     <div class="premium-glass rounded-[2rem] border border-white/5 h-[500px] flex flex-col overflow-hidden">
                         <div class="p-6 border-b border-white/5 bg-white/5 flex justify-between items-center"><span class="font-black text-xs uppercase tracking-widest flex items-center gap-2"><i class="fa-solid fa-comments text-cyan-400"></i> Communications</span></div>
@@ -448,7 +449,11 @@ function startApp() {
         document.getElementById('adminUserManagement').classList.remove('hidden');
         document.getElementById('adminMusicConsole').classList.remove('hidden');
         document.getElementById('adminTeamManagement').classList.remove('hidden'); // NEW
-        socket.emit('getAuthorizedUsers');
+        socket.emit('getAuthorizedUsers'); 
+    } else {
+        // Force hide them if a non-admin is logged in
+        document.getElementById('adminTeamManagement').classList.add('hidden');
+        document.getElementById('adminUserManagement').classList.add('hidden');
     }
 }
 
