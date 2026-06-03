@@ -414,18 +414,19 @@ function handleAddTeam() {
 
 // Update the updateTeams listener to also update the management table
 socket.on('updateTeams', (teams) => {
-    // 1. Update the sidebar budget list
+    // 1. Update the standard Sidebar Purse list (for everyone)
     renderTeams(teams);
 
-    // 2. Update the Admin Management Table rows
+    // 2. Update the Admin Franchise Management Table (for Admin only)
     const mgmtDisplay = document.getElementById('teamManagementDisplay');
-    if (mgmtDisplay) {
+    if (mgmtDisplay && user.role === 'admin') {
         mgmtDisplay.innerHTML = teams.map(t => `
-            <tr class="hover:bg-white/5 transition">
+            <tr class="hover:bg-white/5 transition border-b border-white/5">
                 <td class="p-4 text-white font-bold">${t.name}</td>
                 <td class="p-4 text-cyan-400 font-black">${t.budget}L</td>
                 <td class="p-4 text-center">
-                    <button onclick="if(confirm('Delete ${t.name}?')) socket.emit('deleteTeam', '${t._id}')" class="text-red-500 hover:text-white transition-all transform hover:scale-110">
+                    <button onclick="confirmDeleteTeam('${t._id}', '${t.name}')" 
+                            class="bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white p-2 rounded-lg transition-all transform hover:scale-110">
                         <i class="fa-solid fa-trash-can"></i>
                     </button>
                 </td>
@@ -833,6 +834,17 @@ function playSoldEffect() {
 
     setTimeout(() => { currentTrack.volume = originalVol; }, 4000);
 }
+        function confirmDeleteTeam(id, name) {
+    if (user.role !== 'admin') return;
+    
+    // Safety prompt
+    const verification = confirm(`⚠️ WARNING: Are you sure you want to PERMANENTLY delete team "${name}" and all its budget data?`);
+    
+    if (verification) {
+        console.log("Deleting team:", name);
+        socket.emit('deleteTeam', id);
+    }
+        }
 
     function generatePDF() {
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
