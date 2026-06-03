@@ -511,7 +511,7 @@ function startApp() {
                 <td class="p-4 text-gray-500">${p.phone || 'N/A'}</td>
                 <td class="p-6"><span class="px-3 py-1 rounded-lg text-[10px] font-black border border-white/10 bg-gray-800 tracking-widest uppercase">${p.cardType}</span></td>
                 <td class="p-6 font-black uppercase text-[10px] tracking-widest ${p.status === 'Available' ? 'text-cyan-400' : 'text-red-500'}">${p.status}</td>
-                <td class="p-6 text-white font-black">${p.baseValue} L</td>
+                <td class="p-6 text-white font-black">${p.baseValue} M</td>
                 <td class="p-4 text-center">
                     ${p.imageUrl ? `<img src="${p.imageUrl}" class="w-12 h-8 object-cover rounded border border-cyan-400/50 mx-auto">` : `<i class="fa-solid fa-image text-gray-700"></i>`}
                 </td>
@@ -531,7 +531,7 @@ function startApp() {
         list.innerHTML = teams.sort((a,b)=>b.budget-a.budget).map(t => `
             <div class="flex justify-between items-center p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-cyan-400/30 transition-all group">
                 <span class="text-sm font-black uppercase tracking-widest text-gray-400 group-hover:text-white">${t.name}</span>
-                <span class="text-cyan-400 font-black text-lg">${t.budget} L</span>
+                <span class="text-cyan-400 font-black text-lg">${t.budget} M</span>
             </div>
         `).join('');
         const select = document.getElementById('bonusTeamSelect');
@@ -627,7 +627,7 @@ function startApp() {
     
     if (!amt || !team) return alert("Select team and enter amount!");
 
-    if (confirm(`FORCE DEDUCTION: Are you sure you want to remove ${amt}L from ${team}?`)) {
+    if (confirm(`FORCE DEDUCTION: Are you sure you want to remove ${amt}M from ${team}?`)) {
         socket.emit('deductPurse', { teamName: team, amount: amt });
         document.getElementById('bonusAmount').value = ''; 
     }
@@ -875,10 +875,10 @@ function playSoldEffect() {
 
     function generatePDF() {
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
-        doc.text("NEXUS LEGENDS REPORT", 14, 20);
+        doc.text("PES PARK REPORT", 14, 20);
         const soldData = currentPlayers.filter(p => p.status === 'Sold').map(p => [p.name, p.strength, p.division, p.phone, p.soldTo]);
         doc.autoTable({ startY: 30, head: [['Player', 'OVR', 'Div', 'Phone', 'Sold Status']], body: soldData });
-        doc.save('Nexus_Legends_Report.pdf');
+        doc.save('PES_PARK_Report.pdf');
     }
 
     if(user) startApp();
