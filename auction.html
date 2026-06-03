@@ -270,6 +270,7 @@
         <input id="uEmail" type="email" placeholder="Official Email" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white outline-none focus:border-cyan-400">
         <input id="uPass" type="password" placeholder="Set Password" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white outline-none focus:border-cyan-400">
         <input id="uTeam" type="text" placeholder="Team Name / Admin Name" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white outline-none focus:border-cyan-400">
+        <input id="uBudget" type="number" placeholder="Budget (L)" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white outline-none focus:border-cyan-400">
         <select id="uRole" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white outline-none">
             <option value="captain">Captain</option>
             <option value="admin">Secondary Admin</option>
@@ -696,10 +697,11 @@ function addUser() {
         email: document.getElementById('uEmail').value.trim(),
         password: document.getElementById('uPass').value,
         teamName: document.getElementById('uTeam').value.trim(),
+        budget: document.getElementById('uBudget').value || 2000, // Sends custom budget
         role: document.getElementById('uRole').value
     };
     
-    if(!data.email || !data.password || !data.teamName) return alert("Fill all user details!");
+    if(!data.email || !data.password || !data.teamName) return alert("Fill Email, Password, and Team Name!");
     
     socket.emit('createNewUser', data);
     
@@ -707,6 +709,7 @@ function addUser() {
     document.getElementById('uEmail').value = '';
     document.getElementById('uPass').value = '';
     document.getElementById('uTeam').value = '';
+    document.getElementById('uBudget').value = '';
 }
 
 socket.on('authorizedUsersList', (users) => {
