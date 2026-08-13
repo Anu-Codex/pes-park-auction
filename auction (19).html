@@ -1,0 +1,2972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>NEXUS LEGENDS | AUCTION TOUR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;700&display=swap');
+        
+        :root {
+            --neon: #00e5ff; /* Cyan for eFootball */
+            --ef-yellow: #eaff00; /* Neon Yellow */
+            --premium-gold: #fbbf24;
+        }
+
+        body { 
+            font-family: 'Rajdhani', sans-serif; 
+            background: radial-gradient(circle at top right, #041d3d, #0a0f16 40%);
+            background-color: #0a0f16;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        .premium-glass {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+        }
+
+        .neon-text-glow { text-shadow: 0 0 10px rgba(0, 229, 255, 0.4); }
+        .player-card-premium {
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.1) 0%, rgba(0,0,0,0.8) 50%);
+            border: 2px solid var(--neon);
+        }
+
+        .animate-float { animation: float 4s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+
+        .btn-premium { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .btn-premium:hover { transform: translateY(-2px); filter: brightness(1.2); }
+        .ef-gradient { background: linear-gradient(90deg, #00e5ff, #eaff00); }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--neon); border-radius: 10px; }
+        /* High Prominence Card Styling */
+.premium-card-neon {
+    background: linear-gradient(135deg, #001f3f 0%, #000814 100%);
+    border: 3px solid #00e5ff;
+    box-shadow: 0 0 30px rgba(0, 229, 255, 0.3), inset 0 0 20px rgba(0, 229, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Glowing Player Name */
+.player-name-prominent {
+    color: #eaff00; /* Neon Yellow */
+    text-shadow: 0 0 15px rgba(234, 255, 0, 0.6);
+    font-weight: 900;
+    letter-spacing: -1px;
+}
+
+/* Aggressive Red Timer */
+.timer-prominent {
+    background: rgba(255, 0, 0, 0.15);
+    color: #ff0000;
+    border: 2px solid #ff0000;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+    font-weight: 800;
+    padding: 8px 20px;
+    border-radius: 99px;
+    font-size: 1.25rem;
+    animation: pulse-red 1s infinite;
+}
+
+@keyframes pulse-red {
+    0% { box-shadow: 0 0 10px rgba(255, 0, 0, 0.5); }
+    50% { box-shadow: 0 0 25px rgba(255, 0, 0, 0.8); }
+    100% { box-shadow: 0 0 10px rgba(255, 0, 0, 0.5); }
+}
+
+/* Prominent Bid Box */
+.bid-box-prominent {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(0, 229, 255, 0.3);
+    padding: 2rem;
+    border-radius: 2rem;
+}
+        /* Center and push footer to the bottom */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.main-footer {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto; /* This centers it */
+    padding: 40px 20px;
+    text-align: center;
+    margin-top: auto; /* This pushes it to the very bottom of the body */
+}
+
+/* Gradient text for the names as requested */
+.dev-name {
+    background: linear-gradient(90deg, #10b981, #34d399);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+}
+        .owner-name {
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+    }
+        /* Force Chat Visibility */
+#chatInputContainer {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+        .cursor-zoom-in {
+    cursor: zoom-in;
+}
+
+/* Subtle animation to hint that the image can be touched */
+#auctionDisplay img {
+    animation: imageHint 3s ease-in-out infinite;
+}
+
+@keyframes imageHint {
+    0%, 100% { border-color: rgba(0, 229, 255, 0.2); }
+    50% { border-color: rgba(0, 229, 255, 0.6); }
+}
+        /* Dotted Neon Loader */
+.dotted-loader {
+    width: 60px;
+    height: 60px;
+    position: relative;
+    display: inline-block;
+}
+
+.dotted-loader div {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: #00e5ff;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #00e5ff, 0 0 20px #00e5ff;
+    animation: dotted-fade 1.2s linear infinite;
+}
+
+/* Positioning dots in a circle */
+.dotted-loader div:nth-child(1) { top: 0; left: 30px; animation-delay: 0s; }
+.dotted-loader div:nth-child(2) { top: 8px; left: 45px; animation-delay: -0.1s; }
+.dotted-loader div:nth-child(3) { top: 22px; left: 52px; animation-delay: -0.2s; }
+.dotted-loader div:nth-child(4) { top: 38px; left: 45px; animation-delay: -0.3s; }
+.dotted-loader div:nth-child(5) { top: 48px; left: 30px; animation-delay: -0.4s; }
+.dotted-loader div:nth-child(6) { top: 38px; left: 15px; animation-delay: -0.5s; }
+.dotted-loader div:nth-child(7) { top: 22px; left: 8px; animation-delay: -0.6s; }
+.dotted-loader div:nth-child(8) { top: 8px; left: 15px; animation-delay: -0.7s; }
+
+@keyframes dotted-fade {
+    0%, 20%, 80%, 100% { opacity: 0.2; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.5); }
+}
+
+.loading-text {
+    color: #00e5ff;
+    text-transform: uppercase;
+    letter-spacing: 0.5em;
+    font-size: 10px;
+    margin-top: 15px;
+    font-weight: 900;
+    text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+}
+        #progressCircle {
+    filter: drop-shadow(0 0 8px rgba(0, 229, 255, 0.8));
+}
+
+@keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+        /* Circular Animation for Auction Block */
+.auction-spinner {
+    width: 80px;
+    height: 80px;
+    border: 5px solid rgba(234, 255, 0, 0.1); /* Faint ring */
+    border-top: 5px solid #eaff00;           /* Neon Yellow top */
+    border-radius: 50%;
+    filter: drop-shadow(0 0 10px rgba(234, 255, 0, 0.6));
+    animation: spin-pure 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    margin-bottom: 2rem;
+}
+
+@keyframes spin-pure {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+        /* Optimize Table Performance */
+#playerList {
+    /* Tells the browser to only render rows near the viewport */
+    content-visibility: auto;
+    contain-intrinsic-size: 1000px; 
+}
+
+#playerList tr {
+    /* Fixes row height so the browser doesn't have to "guess" sizes while scrolling */
+    height: 80px; 
+    /* Encourages GPU acceleration */
+    transform: translateZ(0);
+}
+
+/* Optimize scroll container */
+.overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    will-change: scroll-position;
+}
+        .flying-emoji {
+    position: absolute;
+    bottom: 20px;
+    right: 40px;
+    pointer-events: none;
+    z-index: 100;
+    font-size: 28px; /* Slightly larger for impact */
+    animation: flyUp 2.5s cubic-bezier(0.1, 0.7, 1.0, 0.1) forwards;
+    filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));
+}
+
+@keyframes flyUp {
+    0% { transform: translateY(0) scale(0.5); opacity: 0; }
+    10% { transform: translateY(-10px) scale(1.5); opacity: 1; }
+    100% { transform: translateY(-400px) translateX(var(--random-x)) rotate(15deg); opacity: 0; }
+}
+        /* Colorful Team Stat Cards */
+/* Updated Compact Team Stat Cards */
+.team-stat-card {
+    background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.4) 100%);
+    border-radius: 1rem; /* Slightly smaller radius */
+    padding: 8px 12px;   /* Reduced top/bottom padding from 12px to 8px */
+    border: 1px solid rgba(255,255,255,0.1);
+    transition: all 0.4s ease;
+    min-height: 85px;    /* Fixed minimum height to keep them uniform and slim */
+}
+
+/* Ensure the progress ring is slightly smaller to fit the new height */
+.team-stat-card svg {
+    width: 24px;
+    height: 24px;
+}
+
+.card-cyan { border-left: 4px solid #00e5ff; box-shadow: 0 0 15px rgba(0, 229, 255, 0.1); }
+.card-gold { border-left: 4px solid #fbbf24; box-shadow: 0 0 15px rgba(251, 191, 36, 0.1); }
+.card-full { 
+    border-left: 4px solid #ff0000; 
+    background: rgba(255, 0, 0, 0.05);
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.2);
+    animation: glow-red 2s infinite;
+}
+
+@keyframes glow-red {
+    0%, 100% { box-shadow: 0 0 10px rgba(255, 0, 0, 0.2); }
+    50% { box-shadow: 0 0 25px rgba(255, 0, 0, 0.4); }
+}
+
+.squad-number {
+    font-family: 'Inter', sans-serif;
+    letter-spacing: -1px;
+}
+        /* Feature 5: News Ticker */
+.ticker-wrap {
+    width: 100%;
+    overflow: hidden;
+    background: rgba(0, 229, 255, 0.05);
+    border-bottom: 1px solid rgba(0, 229, 255, 0.2);
+    height: 30px;
+}
+.ticker-move {
+    display: inline-block;
+    white-space: nowrap;
+    padding-right: 100%;
+    animation: ticker 30s linear infinite;
+    line-height: 30px;
+}
+@keyframes ticker {
+    0% { transform: translate3d(0, 0, 0); }
+    100% { transform: translate3d(-100%, 0, 0); }
+}
+
+/* Feature 3: Squad Modal Overlay */
+#squadModal {
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+        /* Feature 2: Tier Atmosphere Transitions */
+body {
+    transition: background 1.5s ease, color 0.5s ease;
+}
+
+/* BIG TIME: Deep Purple & Gold */
+.atmo-big-time {
+    background: radial-gradient(circle at top right, #2d0b4d, #0a0f16 50%) !important;
+}
+.atmo-big-time .tier-glow-text {
+    color: #fbbf24 !important;
+    text-shadow: 0 0 20px rgba(251, 191, 36, 0.6);
+}
+
+/* EPIC: Classic Nexus Cyan */
+.atmo-epic {
+    background: radial-gradient(circle at top right, #041d3d, #0a0f16 50%) !important;
+}
+
+/* SHOWTIME: Emerald Green */
+.atmo-showtime {
+    background: radial-gradient(circle at top right, #064e3b, #0a0f16 50%) !important;
+}
+.atmo-showtime .tier-glow-text {
+    color: #10b981 !important;
+    text-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+}
+
+/* HIGHLIGHT: Sleek Silver/Blue */
+.atmo-highlight {
+    background: radial-gradient(circle at top right, #1e293b, #0a0f16 50%) !important;
+}
+
+/* Transition for the main title */
+#mainTitle {
+    transition: all 1s ease;
+}
+        /* Feature 3: Mystery Pack UI */
+.mystery-vault {
+    background: radial-gradient(circle, #1e293b 0%, #020617 100%);
+    border: 3px dashed #00e5ff;
+    position: relative;
+    overflow: hidden;
+    animation: vault-pulse 2s infinite;
+}
+
+@keyframes vault-pulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(0, 229, 255, 0.2); border-color: #00e5ff; }
+    50% { box-shadow: 0 0 50px rgba(0, 229, 255, 0.5); border-color: #eaff00; }
+}
+
+.mystery-glitch {
+    font-size: 8rem;
+    background: linear-gradient(to bottom, #00e5ff, #eaff00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 15px rgba(0, 229, 255, 0.8));
+    font-weight: 900;
+}
+
+/* Reveal Animation */
+.reveal-flash {
+    animation: reveal-burst 1s ease-out forwards;
+}
+
+@keyframes reveal-burst {
+    0% { filter: brightness(1) white-space(0); transform: scale(1); }
+    50% { filter: brightness(10) blur(10px); transform: scale(1.1); }
+    100% { filter: brightness(1); transform: scale(1); }
+}
+.scarcity-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.tier-label { width: 80px; font-size: 8px; font-weight: 900; color: #64748b; text-transform: uppercase; }
+.dots-container { display: flex; flex-wrap: wrap; gap: 4px; flex: 1; }
+.dot { 
+    width: 10px; height: 10px; border-radius: 2px; 
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); 
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+/* Tier specific glows */
+.dot.bt.active { background: #fbbf24; box-shadow: 0 0 8px #fbbf24; border-color: #fbbf24; }
+.dot.ep.active { background: #00e5ff; box-shadow: 0 0 8px #00e5ff; border-color: #00e5ff; }
+.dot.st.active { background: #10b981; box-shadow: 0 0 8px #10b981; border-color: #10b981; }
+.dot.hl.active { background: #64748b; box-shadow: 0 0 8px #64748b; border-color: #64748b; }
+
+/* Flashing FOMO effect for last 3 players */
+.fomo-alert { animation: dot-panic 1s infinite; }
+@keyframes dot-panic { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        #ghostWatchContainer {
+    transition: all 0.5s ease;
+    box-shadow: 0 0 15px rgba(168, 85, 247, 0.1);
+}
+
+.ghost-active {
+    background: rgba(168, 85, 247, 0.2) !important;
+    border-color: rgba(168, 85, 247, 0.6) !important;
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.3) !important;
+}
+
+#ghostWatchContainer i {
+    animation: eye-scan 2s infinite;
+}
+
+@keyframes eye-scan {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.5; }
+}
+        /* Universal Layout Fixes */
+html, body {
+    /* Fix for iPhone bottom bar covering content */
+    height: -webkit-fill-available; 
+    overflow-x: hidden;
+    width: 100%;
+}
+
+body {
+    min-h-screen: 100vh;
+    min-h-screen: 100dvh; /* Dynamic viewport height for modern browsers */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Wide Desktop Optimization */
+@media (min-width: 1536px) {
+    .max-w-screen-xl {
+        max-width: 1400px !important;
+    }
+}
+
+/* iPhone/Mobile Scroll Fix */
+.overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Glassmorphism Fix for older iPhones */
+.premium-glass {
+    -webkit-backdrop-filter: blur(16px);
+}
+
+    </style>
+</head>
+<body class="min-h-screen">
+    
+<!-- Background Music Player (Playlist enabled) -->
+<audio id="bgMusic"></audio> 
+
+<!-- Special Admin Triggered Tracks -->
+<audio id="introMusic" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"></audio>
+<audio id="hypeMusic" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3"></audio>
+
+<!-- SFX -->
+<audio id="startSfx" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"></audio>
+<audio id="soldSfx" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
+
+<!-- Volume Alert Popup (Small) -->
+<div id="volumePopup" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="premium-glass p-6 rounded-[2rem] border border-cyan-500/30 max-w-xs w-full text-center shadow-[0_0_50px_rgba(0,229,255,0.2)] animate-in fade-in zoom-in duration-300">
+        <div class="w-16 h-16 bg-cyan-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-cyan-500/20">
+            <i class="fa-solid fa-volume-high text-2xl text-cyan-400 animate-pulse"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white uppercase tracking-tighter">Audio Recommended</h3>
+        <p class="text-gray-400 text-xs mt-2 mb-6">For the best auction experience, please turn up your device volume.</p>
+        <button onclick="startAuctionAudio()" class="w-full ef-gradient text-black font-black py-3 rounded-xl uppercase text-sm btn-premium">
+            Enter with Sound
+        </button>
+    </div>
+</div>
+
+<!-- Floating Music Control (Mute/Unmute) -->
+<div id="musicToggle" class="fixed bottom-6 right-6 z-[150] hidden">
+    <button onclick="toggleMusic()" class="bg-cyan-500/20 hover:bg-cyan-500 border border-cyan-500/50 text-white w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg shadow-cyan-500/20">
+        <i id="musicIcon" class="fa-solid fa-volume-high"></i>
+    </button>
+</div>
+
+    <!-- AUTH OVERLAY -->
+    <div id="authOverlay" class="fixed inset-0 z-[100] flex items-center justify-center bg-[#0a0f16]/98">
+        <div class="premium-glass p-10 rounded-[2.5rem] w-full max-w-md border border-cyan-500/20 text-center">
+            
+            <!-- STEP 1: CHOICE -->
+            <div id="auth_choice" class="space-y-6">
+                <div class="w-20 h-20 bg-cyan-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-cyan-500/30">
+                    <i class="fa-solid fa-bolt-lightning text-3xl text-cyan-400"></i>
+                </div>
+                <h1 class="text-4xl font-bold tracking-tighter uppercase text-white">NEXUS <span class="text-cyan-400">LEGENDS</span></h1>
+                <div class="space-y-3 pt-4">
+                    <button onclick="guestAccess()" class="w-full ef-gradient text-black font-black py-4 rounded-2xl btn-premium uppercase">View as a Guest</button>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="showAuthStep('captain')" class="bg-white/5 border border-white/10 text-white font-bold py-3 rounded-xl">Captain</button>
+                        <button onclick="showAuthStep('admin')" class="bg-white/5 border border-white/10 text-white font-bold py-3 rounded-xl">Admin</button>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- STEP 3: SPECIAL LOGIN -->
+            <div id="auth_special" class="hidden space-y-4">
+                <h2 id="special_title" class="text-2xl font-bold text-white uppercase">Authorized Login</h2>
+                <input type="email" id="spec_email" 
+       oninput="this.value = this.value.toLowerCase()" 
+       placeholder="Official Email" 
+       class="w-full bg-gray-900 border border-white/10 p-4 rounded-2xl text-white">
+                <input type="password" id="spec_pass" placeholder="Password" class="w-full bg-gray-900 border border-white/10 p-4 rounded-2xl text-white">
+                <button onclick="handleSpecialLogin()" class="w-full ef-gradient text-black font-black py-4 rounded-2xl uppercase">Verify Identity</button>
+                <button onclick="showAuthStep('choice')" class="text-gray-500 text-sm uppercase">Back</button>
+            </div>
+
+            <!-- STEP 4: OTP VERIFICATION -->
+            <div id="auth_otp" class="hidden space-y-6">
+                <h2 class="text-2xl font-bold text-white uppercase">Verify Email</h2>
+                <input type="text" id="otp_input" placeholder="000000" class="w-full bg-gray-900 border border-white/10 p-4 rounded-2xl text-white text-center text-3xl font-bold">
+                <button onclick="handleVerifyOTP()" class="w-full ef-gradient text-black font-black py-4 rounded-2xl uppercase">Enter Arena</button>
+            </div>
+
+            <p id="authError" class="text-red-400 text-sm mt-6 hidden font-bold"></p>
+        </div>
+    </div> <!-- CLOSED CORRECTLY -->
+    <!-- FUTURISTIC NEON CIRCLE LOADER -->
+<div id="megaLoader" class="fixed inset-0 z-[600] bg-[#0a0f16] flex flex-col items-center justify-center transition-all duration-1000">
+    <div class="relative w-72 h-72">
+        <!-- Outer Glow Ring -->
+        <div class="absolute inset-0 rounded-full border-2 border-cyan-500/10 blur-xl animate-pulse"></div>
+        
+        <!-- Background Static Ring -->
+        <svg class="w-full h-full transform -rotate-90">
+            <circle cx="144" cy="144" r="120" stroke="rgba(255,255,255,0.05)" stroke-width="12" fill="transparent" stroke-dasharray="10 5" />
+            
+            <!-- Technical Dashed Ring -->
+            <circle cx="144" cy="144" r="135" stroke="rgba(0,229,255,0.1)" stroke-width="2" fill="transparent" stroke-dasharray="1 10" class="animate-[spin_10s_linear_infinite]" />
+
+            <!-- MAIN PROGRESS CIRCLE -->
+            <circle id="progressCircle" cx="144" cy="144" r="120" stroke="url(#neonGradient)" stroke-width="12" fill="transparent"
+                    stroke-dasharray="754" stroke-dashoffset="754"
+                    stroke-linecap="round"
+                    style="transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1);" />
+            
+            <!-- Define Gradient -->
+            <defs>
+                <linearGradient id="neonGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#00e5ff;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#eaff00;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+        </svg>
+
+        <!-- Center Text -->
+        <div class="absolute inset-0 flex flex-col items-center justify-center">
+            <span id="loadPercent" class="text-6xl font-black text-white italic tracking-tighter">0%</span>
+            <div class="h-1 w-12 ef-gradient mt-2 rounded-full"></div>
+        </div>
+    </div>
+    
+    <!-- Status Text -->
+    <div class="mt-12 text-center">
+        <p id="loadStatus" class="text-cyan-400 font-black tracking-[0.5em] uppercase text-[10px] mb-2 animate-pulse">Initializing Nexus Link</p>
+        <p class="text-gray-600 font-bold text-[8px] uppercase tracking-widest">Securing Database Synchronization</p>
+    </div>
+</div>
+    <!-- ASSET SYNC PROMPT -->
+<div id="assetPrompt" class="hidden fixed inset-0 z-[650] bg-[#0a0f16]/95 backdrop-blur-md flex items-center justify-center p-6">
+    <div class="premium-glass p-8 rounded-[2.5rem] border border-cyan-500/30 max-w-sm w-full text-center shadow-[0_0_50px_rgba(0,229,255,0.2)]">
+        <div class="w-20 h-20 bg-cyan-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-cyan-500/30">
+            <i class="fa-solid fa-cloud-arrow-down text-3xl text-cyan-400 animate-bounce"></i>
+        </div>
+        <h3 class="text-2xl font-black text-white uppercase tracking-tighter">Assets Required</h3>
+        <p class="text-gray-400 text-xs mt-3 mb-8 leading-relaxed">To ensure high-resolution player screenshots load instantly, we need to sync visual assets (approx. 5-10MB).</p>
+        
+        <div id="syncProgressContainer" class="hidden mb-6">
+            <div class="w-full bg-gray-900 h-1.5 rounded-full overflow-hidden mb-2">
+                <div id="syncBar" class="h-full ef-gradient w-0 transition-all duration-300"></div>
+            </div>
+            <p id="syncText" class="text-[10px] text-cyan-400 font-bold uppercase tracking-widest">Syncing 0%</p>
+        </div>
+
+        <button id="startSyncBtn" onclick="startAssetSync()" class="w-full ef-gradient text-black font-black py-4 rounded-2xl uppercase text-sm btn-premium">
+            Download & Sync
+        </button>
+    </div>
+</div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboard" class="hidden">
+        <nav class="premium-glass sticky top-0 z-50 px-8 py-5 flex justify-between items-center border-b border-white/5">
+            <div class="flex items-center gap-3">
+                <div class="bg-cyan-500/10 p-2 rounded-lg border border-cyan-500/20">
+                    <i class="fa-solid fa-crown text-cyan-400 text-xl"></i>
+                </div>
+                <span class="font-bold text-2xl tracking-tighter uppercase text-white">NEXUS <span class="text-cyan-400">LEGENDS FC</span></span>
+            </div>
+            <div class="flex items-center gap-6">
+                <div class="text-right hidden md:block">
+                    <p id="userName" class="text-white font-bold leading-none mb-1"></p>
+                    <p id="userRole" class="text-[10px] text-cyan-400 uppercase tracking-[0.2em] font-black"></p>
+                </div>
+                <button onclick="logout()" class="bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white px-5 py-2 rounded-xl text-xs font-black transition-all border border-red-500/20">LOGOUT</button>
+            </div>
+        </nav>
+
+        <main class="max-w-[1400px] mx-auto p-6 lg:p-10">
+            <div id="mainHeader" class="flex flex-col items-center mb-12">
+    <span id="subHeader" class="text-cyan-400 font-black tracking-[0.5em] text-xs uppercase mb-2">Live EFOOTBALL Auction 2026</span>
+    <h2 id="mainTitle" class="text-6xl font-black uppercase italic tracking-tighter text-white">
+        <span class="tier-glow-text">CHAMPIONS</span> <span class="text-cyan-400 tier-glow-text">AUCTION</span> LEAGUE
+    </h2>
+    <div id="headerBar" class="h-1.5 w-32 ef-gradient mt-4 rounded-full shadow-[0_0_15px_#00e5ff]"></div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div class="ticker-wrap">
+    <div id="newsTicker" class="ticker-move text-[10px] font-black uppercase tracking-[0.2em] text-cyan-400">
+        Welcome to Nexus Legends Auction Tour 2026-27 • Database Synchronized • Awaiting Nomination...
+    </div>
+                </div>
+                <!-- Left: Live Auction & Roster (KEPT SAME) -->
+                <div class="lg:col-span-8 space-y-8">
+                    <div class="premium-glass rounded-[2.5rem] p-8 relative overflow-hidden min-h-[450px] border border-white/5 flex flex-col items-center justify-center">
+                        <div class="absolute top-6 left-8 flex items-center gap-3">
+                            <span class="h-2 w-2 bg-red-500 rounded-full pulse"></span>
+                            <span class="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Live Auction Block | Made By: Anubhav Sarkar</span>
+                        </div>
+                        <div id="auctionDisplay" class="w-full"><div class="text-center py-20"><i class="fa-solid fa-circle-notch fa-spin text-4xl text-cyan-400/20 mb-4"></i><p class="text-gray-500 uppercase tracking-widest font-bold">Synchronizing...</p></div></div>
+                        <div id="adminControls" class="hidden mt-10 pt-8 border-t border-white/5 w-full flex justify-center gap-6">
+                            <button onclick="socket.emit('sellPlayer')" class="bg-blue-600 hover:bg-blue-500 text-white px-10 py-3 rounded-2xl font-black btn-premium shadow-xl">SELL PLAYER</button>
+                            <button onclick="socket.emit('markUnsold')" class="bg-orange-600 hover:bg-orange-500 text-white px-10 py-3 rounded-2xl font-black btn-premium shadow-xl">MARK UNSOLD</button>
+                            <button id="revealBtn" onclick="socket.emit('revealPlayer')" class="hidden bg-green-600 hover:bg-green-500 text-white px-10 py-3 rounded-2xl font-black btn-premium shadow-xl">
+    REVEAL PLAYER
+                            </button>
+                            <button onclick="socket.emit('cancelAuction')" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-10 py-3 rounded-2xl font-black btn-premium">CANCEL</button>
+                        </div>
+                    </div>
+
+                     <!-- NEXUS COMMAND CENTER (STATISTICS) -->
+<div class="space-y-4 mb-8">
+    <!-- Top Row: General Stats -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="premium-glass p-4 rounded-[1.5rem] border-cyan-500/20 text-center">
+            <p class="text-[9px] font-black text-cyan-400 uppercase tracking-widest mb-1">Total Pool</p>
+            <h4 id="statTotal" class="text-3xl font-black text-white">0</h4>
+        </div>
+        <div class="premium-glass p-4 rounded-[1.5rem] border-green-500/20 text-center">
+            <p class="text-[9px] font-black text-green-400 uppercase tracking-widest mb-1">Players Sold</p>
+            <h4 id="statSold" class="text-3xl font-black text-white">0</h4>
+        </div>
+        <div class="premium-glass p-4 rounded-[1.5rem] border-orange-500/20 text-center">
+            <p class="text-[9px] font-black text-orange-400 uppercase tracking-widest mb-1">Currently Unsold</p>
+            <h4 id="statUnsold" class="text-3xl font-black text-white">0</h4>
+        </div>
+        <!-- Tier Specifics -->
+        <div class="premium-glass p-2 rounded-[1.5rem] border-white/5 grid grid-cols-2 gap-1">
+            <div class="text-center"><p class="text-[7px] text-gray-500 uppercase">Big Time</p><span id="tierBT" class="text-sm font-bold text-yellow-400">0</span></div>
+            <div class="text-center"><p class="text-[7px] text-gray-500 uppercase">Epic</p><span id="tierEP" class="text-sm font-bold text-cyan-400">0</span></div>
+            <div class="text-center"><p class="text-[7px] text-gray-500 uppercase">Showtime</p><span id="tierST" class="text-sm font-bold text-green-400">0</span></div>
+            <div class="text-center"><p class="text-[7px] text-gray-500 uppercase">Highlight</p><span id="tierHL" class="text-sm font-bold text-gray-400">0</span></div>
+        </div>
+    </div>
+
+    <!-- Franchise Squad Tracker Block -->
+<div class="premium-glass p-8 rounded-[2.5rem] border-white/5 bg-gradient-to-br from-[#0a0f16] to-[#041d3d]">
+    <div class="flex justify-between items-center mb-6">
+        <div class="flex items-center gap-3">
+            <div class="bg-cyan-500/20 p-2 rounded-lg border border-cyan-500/30">
+                <i class="fa-solid fa-users-rays text-cyan-400"></i>
+            </div>
+            <div>
+                <h5 class="text-xs font-black text-white uppercase tracking-[0.2em]">Franchise Squad Monitor</h5>
+                <p class="text-[8px] text-gray-500 uppercase font-bold tracking-widest">Real Time Registration Depth</p>
+            </div>
+        </div>
+        <!-- Live Status Pulse -->
+        <div class="flex items-center gap-2 bg-green-500/10 px-3 py-1 rounded-full border border-green-500/20">
+            <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-ping"></span>
+            <span class="text-[8px] font-black text-green-400 uppercase">Live Nexus Sync</span>
+        </div>
+    </div>
+
+    <!-- The Grid -->
+    <div id="statSquadGrid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <!-- Colorful Cards Injected Here -->
+    </div>
+</div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
+    <!-- FEATURE 3: LIVE SCARCITY MAP (FOMO GRID) -->
+    <div class="premium-glass p-8 rounded-[2.5rem] border-white/5 bg-gradient-to-bl from-[#0a0f16] to-[#1e1b4b]">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h5 class="text-xs font-black text-white uppercase tracking-[0.2em]">Live Scarcity Map</h5>
+                <p class="text-[8px] text-gray-500 uppercase font-bold tracking-widest">Remaining Player Inventory</p>
+            </div>
+            <i class="fa-solid fa-layer-group text-orange-500 animate-pulse"></i>
+        </div>
+
+        <div id="scarcityMap" class="space-y-4">
+            <!-- Tiers will be injected here with FOMO dots -->
+        </div>
+    </div>
+
+    <!-- MARKET ANALYTICS: PRICE TREND GRAPH -->
+    <div class="premium-glass p-8 rounded-[2.5rem] border-white/5 bg-[#0a0f16]">
+        <div class="flex justify-between items-center mb-4">
+            <div>
+                <h5 class="text-xs font-black text-white uppercase tracking-[0.2em]">Market Price Index</h5>
+                <p class="text-[8px] text-gray-500 uppercase font-bold tracking-widest">Live Transfer Value Volatility</p>
+            </div>
+            <div id="graphStatus" class="text-[10px] font-black text-green-400 uppercase tracking-tighter">Bullish Market</div>
+        </div>
+        <div class="h-48 w-full">
+            <canvas id="priceChart"></canvas>
+        </div>
+    </div>
+                    </div>
+    <!-- Right: Purses & Chat (KEPT SAME) -->
+                <div class="lg:col-span-4 space-y-8">
+                    <div class="premium-glass rounded-[2rem] border border-white/5 overflow-hidden">
+                        <div class="bg-gradient-to-r from-cyan-900/40 to-transparent p-6 border-b border-white/5 flex justify-between items-center"><h3 class="font-bold uppercase tracking-widest">Franchise Purses</h3><i class="fa-solid fa-vault text-yellow-400"></i></div>
+                        <div id="budgetList" class="p-3 space-y-2 max-h-[400px] overflow-y-auto"></div>
+                        <div id="adminBonusPanel" class="hidden p-6 bg-black/40 border-t border-white/5 space-y-4">
+    <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Select Franchise to Adjust</label>
+    <select id="bonusTeamSelect" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-xs text-white outline-none focus:border-cyan-500/50"></select>
+    
+    <div class="flex flex-col gap-2">
+        <input id="bonusAmount" type="number" placeholder="Enter Amount (M)" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-xs text-white">
+        
+        <div class="grid grid-cols-3 gap-2">
+            <button onclick="sendBonus()" class="bg-cyan-500 text-black font-black py-3 rounded-xl text-[10px] uppercase hover:bg-cyan-400 transition-all">Inject</button>
+            <button onclick="forceDeduct()" class="bg-red-600 text-white font-black py-3 rounded-xl text-[10px] uppercase hover:bg-red-500 transition-all">Deduct</button>
+            <button onclick="triggerReduceSquad()" class="bg-orange-500 text-white font-black py-3 rounded-xl text-[10px] uppercase hover:bg-orange-400 transition-all shadow-lg shadow-orange-900/20">
+        Release Player
+            </button>
+            <button onclick="triggerResetPurse()" class="bg-gray-700 text-gray-300 font-black py-3 rounded-xl text-[10px] uppercase hover:bg-white hover:text-black transition-all">Reset</button>
+        </div>
+    </div>
+                        </div>
+
+                    <div class="premium-glass rounded-[2rem] border border-white/5 h-[500px] flex flex-col overflow-hidden mt-8 relative">
+    <!-- Chat Header -->
+    <div class="p-6 border-b border-white/5 bg-white/5 flex justify-between items-center">
+        <span class="font-black text-xs uppercase tracking-widest flex items-center gap-2">
+            <i class="fa-solid fa-comments text-cyan-400"></i> Communications (Reserved For Admin & Captains)
+        </span>
+    </div>
+
+    <!-- MAIN CHAT AREA WITH SIDEBAR -->
+    <div class="flex flex-1 overflow-hidden relative">
+        <!-- Chat Box Messages -->
+        <div id="chatBox" class="flex-1 overflow-y-auto p-6 space-y-4 pr-16"></div>
+
+        <!-- REACTION SIDEBAR -->
+<div class="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-3 p-2 bg-black/40 backdrop-blur-md rounded-full border border-white/10 z-10">
+    <!-- Primary Emojis -->
+    <button onclick="sendReaction('🔥')" class="hover:scale-125 transition text-xl">🔥</button>
+    <button onclick="sendReaction('👏')" class="hover:scale-125 transition text-xl">👏</button>
+    <button onclick="sendReaction('😂')" class="hover:scale-125 transition text-xl">😂</button>
+    <button onclick="sendReaction('❤️')" class="hover:scale-125 transition text-xl">❤️</button>
+    <button onclick="sendReaction('😮')" class="hover:scale-125 transition text-xl">😮</button>
+    
+    <!-- Unrestricted Plus Button -->
+    <div class="relative">
+        <button onclick="openEmojiPicker()" class="w-8 h-8 flex items-center justify-center bg-cyan-500/20 rounded-full text-cyan-400 text-sm hover:bg-cyan-500 hover:text-black transition">
+            <i class="fa-solid fa-plus"></i>
+        </button>
+        <!-- This hidden input triggers the native emoji keyboard -->
+        <input type="text" id="nativeEmojiTrigger"
+       autocomplete="off" 
+       autocorrect="off" 
+       spellcheck="false"
+       class="absolute inset-0 w-full h-full opacity-0 cursor-pointer pointer-events-none" 
+       oninput="handleNativeEmoji(this)">
+    </div>
+</div>
+        </div>
+
+    <!-- Chat Input (Visible to All) -->
+    <div id="chatInputContainer" class="p-4 bg-black/40 border-t border-white/5">
+        <div class="flex gap-3 bg-gray-900 p-2 rounded-[1.5rem] border border-white/10">
+            <input id="chatInput" type="text" placeholder="Write a message..." class="flex-1 bg-transparent p-2 outline-none text-white text-sm" onkeypress="if(event.key==='Enter')sendChat()">
+            <button onclick="sendChat()" class="bg-cyan-400 text-black w-10 h-10 rounded-full hover:bg-cyan-300 transition-all flex items-center justify-center">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+</div> <!-- Closes the Chat Premium Glass container -->
+                    <!-- NEW: SEPARATE PUBLIC CHAT BOX WITH REACTIONS -->
+<div class="premium-glass rounded-[2rem] border border-orange-500/10 h-[450px] flex flex-col overflow-hidden mt-8 relative shadow-[0_0_30px_rgba(249,115,22,0.05)]">
+    <!-- Header -->
+    <div class="p-6 border-b border-white/5 bg-orange-500/5 flex justify-between items-center">
+        <span class="font-black text-xs uppercase tracking-widest flex items-center gap-2 text-orange-400">
+            <i class="fa-solid fa-earth-americas"></i> Public Arena - For Guest Users & Visitors<span class="text-[8px] opacity-50 ml-2 font-normal">(Live Reactions Enabled)</span>
+        </span>
+    </div>
+
+    <!-- MAIN AREA -->
+    <div class="flex flex-1 overflow-hidden relative">
+        <!-- Public Chat Messages Area -->
+        <div id="pubChatBox" class="flex-1 overflow-y-auto p-6 space-y-4 pr-16">
+            <p class="text-[9px] text-center text-gray-600 uppercase tracking-[0.3em] italic py-4">Entrance to Public Feed.</p>
+        </div>
+
+        <!-- PUBLIC REACTION SIDEBAR -->
+        <div class="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-3 p-2 bg-black/40 backdrop-blur-md rounded-full border border-white/10 z-10">
+            <button onclick="sendPubReaction('🔥')" class="hover:scale-125 transition text-xl">🔥</button>
+            <button onclick="sendPubReaction('👏')" class="hover:scale-125 transition text-xl">👏</button>
+            <button onclick="sendPubReaction('😂')" class="hover:scale-125 transition text-xl">😂</button>
+            <button onclick="sendPubReaction('❤️')" class="hover:scale-125 transition text-xl">❤️</button>
+            
+            <!-- Unrestricted Plus Button for Public -->
+            <div class="relative">
+                <button onclick="openPubEmojiPicker()" class="w-8 h-8 flex items-center justify-center bg-orange-500/20 rounded-full text-orange-400 text-sm hover:bg-orange-500 hover:text-black transition">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
+                <input type="text" id="pubEmojiTrigger" 
+                       class="absolute inset-0 w-full h-full opacity-0 cursor-pointer pointer-events-none" 
+                       oninput="handlePubNativeEmoji(this)">
+            </div>
+        </div>
+    </div>
+
+    <!-- Public Chat Input -->
+    <div class="p-4 bg-black/40 border-t border-white/5">
+        <div class="flex gap-3 bg-gray-800/40 p-2 rounded-[1.5rem] border border-white/5">
+            <input id="pubInput" type="text" placeholder="Type public message..." class="flex-1 bg-transparent p-2 outline-none text-white text-sm" onkeypress="if(event.key==='Enter') sendPubChat()">
+            <button onclick="sendPubChat()" class="bg-orange-500 text-white w-10 h-10 rounded-full flex items-center justify-center">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+                    <div class="premium-glass rounded-[2rem] overflow-hidden border border-white/5">
+                        <div class="bg-white/5 p-6 border-b border-white/5 flex justify-between items-center">
+                            <h3 class="font-bold flex items-center gap-3 uppercase tracking-wider"><i class="fa-solid fa-users-viewfinder text-cyan-400"></i> Available Roster</h3>
+                            <!-- SEARCH BAR -->
+    <div class="relative w-full md:w-72">
+        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+        <input type="text" id="playerSearchInput" oninput="filterPlayers()" placeholder="Search Name or Tier..." 
+               class="w-full bg-black/40 border border-white/10 py-2 pl-10 pr-4 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-400/50 transition-all">
+    </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-black/40 text-[10px] uppercase tracking-[0.2em] text-gray-500">
+                                    <tr><th class="p-6">Player Identity</th><th class="p-6">Strength</th><th class="p-6">Phone</th><th class="p-6">Tier</th><th class="p-6">Status</th><th class="p-6">Base Value</th><th class="p-6 text-center">Operation</th></tr>
+                                </thead>
+                                <tbody id="playerList" class="text-sm divide-y divide-white/5">
+    <!-- This will show UNTIL data arrives -->
+    <tr>
+        <td colspan="7" class="py-32 text-center">
+            <div class="dotted-loader">
+                <div></div><div></div><div></div><div></div>
+                <div></div><div></div><div></div><div></div>
+            </div>
+            <p class="loading-text animate-pulse">Syncing Database...</p>
+        </td>
+    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="adminPlayerForm" class="hidden premium-glass rounded-[2rem] p-8 border border-cyan-500/20">
+                        <h3 class="text-xl font-bold mb-6 flex items-center gap-3 text-white"><i class="fa-solid fa-plus-circle text-cyan-400"></i> Register New Legend</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <input id="pName" type="text" placeholder="Name" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white">
+                            <input id="pStrength" type="number" placeholder="Current Star" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white">
+                            <select id="pType" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white"><option> BIG TIME</option><option> EPIC</option><option>SHOWTIME</option><option> HIGHLIGHT</option></select>
+                            <input id="pBase" type="number" placeholder="Base (M)" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white">
+                            <input id="pPhone" type="number" placeholder="Phone No" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white">
+                            
+                            <div class="col-span-2 space-y-1">
+                            <label class="text-[10px] uppercase text-gray-500 ml-2 font-bold">Team Screenshot (Landscape)</label>
+                            <input id="pImgFile" type="file" accept="image/*" class="w-full bg-gray-900 border border-white/10 p-2 rounded-xl text-xs text-white">
+                            </div>
+                        </div>
+                        <button onclick="addPlayer()" class="mt-6 w-full ef-gradient text-black font-black py-4 rounded-2xl btn-premium uppercase">Deploy to Roster</button>
+                    </div>
+                </div>
+                    <!-- ADMIN LOGIN MANAGEMENT (Visible to Admin Only) -->
+<div id="adminUserManagement" class="hidden premium-glass rounded-[2rem] p-8 border border-cyan-500/20 mt-8">
+    <h3 class="text-xl font-bold mb-6 text-white uppercase tracking-widest flex items-center gap-3">
+        <i class="fa-solid fa-user-shield text-cyan-400"></i> LOGIN MANAGEMENT
+    </h3>
+    <!-- ADMIN DIRECT ASSIGN PANEL -->
+<div id="adminDirectAssignPanel" class="hidden premium-glass rounded-[2rem] p-8 border border-green-500/20 mt-8 mb-8">
+    <h3 class="text-xl font-bold mb-6 text-white uppercase tracking-widest flex items-center gap-3">
+        <i class="fa-solid fa-file-signature text-green-400"></i> Direct Squad Registration
+    </h3>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="space-y-1">
+            <label class="text-[9px] font-black text-gray-500 uppercase ml-2">Select Available Player</label>
+            <select id="assignPlayerSelect" class="w-full bg-gray-900 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-green-400"></select>
+        </div>
+        <div class="space-y-1">
+            <label class="text-[9px] font-black text-gray-500 uppercase ml-2">Assign to Franchise</label>
+            <select id="assignTeamSelect" class="w-full bg-gray-900 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-green-400"></select>
+        </div>
+        <div class="space-y-1">
+            <label class="text-[9px] font-black text-gray-500 uppercase ml-2">Set Registration Value (M)</label>
+            <input id="assignValueInput" type="number" placeholder="Value (e.g. 50)" class="w-full bg-gray-900 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-green-400">
+        </div>
+    </div>
+
+    <button onclick="handleForceAssign()" class="w-full bg-green-500 hover:bg-green-400 text-black font-black py-4 rounded-2xl uppercase transition-all shadow-lg shadow-green-900/20">
+        Confirm Direct Assignment (Bypass Auction)
+    </button>
+    <p class="text-[9px] text-gray-500 mt-3 text-center uppercase">Note: This will not deduct money from the team's remaining purse.</p>
+</div>
+    <!-- DANGER ZONE RESET -->
+<div class="mt-12 pt-8 border-t border-red-500/20">
+    <h4 class="text-red-500 font-black text-[10px] uppercase tracking-[0.5em] mb-4">Danger Zone</h4>
+    <button onclick="triggerMegaReset()" class="w-full bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white border border-red-500/30 py-4 rounded-2xl font-black uppercase transition-all flex items-center justify-center gap-3">
+        <i class="fa-solid fa-skull-crossbones"></i> 
+        Erase All Data & Start Fresh
+    </button>
+    <p class="text-[9px] text-gray-600 mt-2 text-center uppercase">This will delete all players, teams, chats, and accounts permanently.</p>
+    <button onclick="triggerClearPlayers()" class="w-full bg-orange-600/10 hover:bg-orange-600 text-orange-500 hover:text-white border border-orange-500/30 py-3 rounded-2xl font-black uppercase transition-all flex items-center justify-center gap-3 mb-3 text-xs">
+        <i class="fa-solid fa-users-slash"></i> 
+        Clear Only Player Roster
+    </button>
+</div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <input id="uEmail" type="email" placeholder="Official Email" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white outline-none focus:border-cyan-400">
+        <input id="uPass" type="password" placeholder="Set Password" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white outline-none focus:border-cyan-400">
+        <input id="uTeam" type="text" placeholder="Team Name / Admin Name" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white outline-none focus:border-cyan-400">
+        <input id="uBudget" type="number" placeholder="Budget (L)" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white outline-none focus:border-cyan-400">
+        <select id="uRole" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white outline-none">
+            <option value="captain">Captain</option>
+            <option value="admin">Secondary Admin</option>
+        </select>
+    </div>
+    <button onclick="addUser()" class="w-full ef-gradient text-black font-black py-4 rounded-2xl btn-premium uppercase mb-8">Create Authorized User</button>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs uppercase font-bold tracking-widest text-gray-400">
+            <thead class="bg-black/40">
+                <tr><th class="p-4">Email</th><th class="p-4">Identity/Team</th><th class="p-4">Role</th><th class="p-4">Action</th></tr>
+            </thead>
+            <tbody id="userListDisplay" class="divide-y divide-white/5"></tbody>
+        </table>
+    </div>
+</div>
+    <!-- ADMIN FRANCHISE MANAGEMENT -->
+<div id="adminTeamManagement" class="hidden premium-glass rounded-[2rem] p-8 border border-yellow-500/20 mt-8">
+    <h3 class="text-xl font-bold mb-6 text-white uppercase tracking-widest flex items-center gap-3">
+        <i class="fa-solid fa-shield-halved text-yellow-400"></i> FRANCHISE MANAGEMENT
+    </h3>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <input id="tName" type="text" placeholder="New Team Name" class="w-full bg-gray-900 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-yellow-400">
+        <input id="tBudget" type="number" placeholder="Starting Budget (M)" class="w-full bg-gray-900 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-yellow-400">
+        <button onclick="handleAddTeam()" class="bg-yellow-500 text-black font-black py-4 rounded-2xl btn-premium uppercase">
+            Create Team
+        </button>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs uppercase font-bold tracking-widest text-gray-400">
+            <!-- Inside the Team Management Table -->
+<thead class="bg-black/40">
+    <tr>
+        <th class="p-4">Franchise</th>
+        <th class="p-4">Purse</th>
+        <th class="p-4">Logo</th>
+        <th class="p-4">Max Slots</th> <!-- NEW -->
+        <th class="p-4 text-center">Action</th>
+    </tr>
+</thead>
+            <tbody id="teamManagementDisplay" class="divide-y divide-white/5">
+                <!-- Injected via socket -->
+            </tbody>
+        </table>
+    </div>
+    <div class="mt-10 pt-8 border-t border-cyan-500/20">
+    <h3 class="text-sm font-black text-cyan-400 uppercase tracking-widest mb-4">
+        <i class="fa-solid fa-file-csv"></i> Bulk CSV Registration
+    </h3>
+    <div class="flex flex-col md:flex-row gap-4 items-center">
+        <input type="file" id="csvFileInput" accept=".csv" 
+               class="flex-1 bg-gray-900 border border-white/10 p-3 rounded-xl text-xs text-white">
+        <button onclick="uploadCsvRoster()" 
+                class="bg-green-500 text-black font-black px-8 py-3 rounded-xl uppercase text-[10px] btn-premium">
+            Sync Registration Data
+        </button>
+    </div>
+    <p id="csvStatus" class="text-[10px] text-gray-500 mt-2 uppercase font-bold"></p>
+    </div>
+</div>
+                    <!-- Line 357: PDF and Chat Section starts outside the admin-only divs -->
+<button onclick="generatePDF()" class="w-full bg-red-700/20 hover:bg-red-700 text-red-500 hover:text-white border border-red-500/20 p-5 rounded-[1.5rem] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-3 mt-8">
+    <i class="fa-solid fa-file-pdf"></i> Generate Final Report
+</button>
+                    <button id="showcaseBtn" onclick="toggleSlideshow()" class="hidden bg-purple-600 hover:bg-purple-500 text-white px-10 py-3 rounded-2xl font-black btn-premium shadow-xl">
+    SHOWCASE UNSOLD
+                    </button>
+                    <button onclick="localCloseSlideshow()" class="absolute top-8 right-8 text-white/30 hover:text-white text-4xl z-[450] transition-all">
+        <i class="fa-solid fa-circle-xmark"></i>
+                    </button>
+
+
+
+</div> <!-- Line 372: Closes Right Column (lg:col-span-4) -->
+</div> <!-- Line 373: Closes the Grid Container (grid-cols-12) -->
+</main> <!-- Line 374: Closes the Main tag -->
+</div> <!-- Line 375: Closes the Dashboard div -->
+    <!-- Hidden input for updating existing players -->
+<input type="file" id="updateImgInput" accept="image/*" class="hidden" onchange="processImageUpdate(this)">
+        
+    <script>
+    const socket = io("https://nexus-acl-backend.onrender.com"); 
+
+    let currentSearchTerm = "";
+    let currentPlayers = [];
+    let currentTeams = [];
+    let user = JSON.parse(localStorage.getItem('nexus_user')) || null;
+    let tempEmail = "";
+    let authType = "";
+    let priceChart;
+// Update initPriceChart to accept data
+function initPriceChart(historyData = []) {
+    const ctx = document.getElementById('priceChart').getContext('2d');
+    
+    // Extract names and prices from database history
+    const labels = historyData.map(h => h.playerName);
+    const dataPoints = historyData.map(h => h.price);
+
+    if(priceChart) priceChart.destroy(); // Prevent duplicate charts
+
+    priceChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: dataPoints,
+                borderColor: '#00e5ff',
+                backgroundColor: 'rgba(0, 229, 255, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } },
+                x: { display: false }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+}
+
+// Update the initialData listener
+
+
+    // --- AUTH UI LOGIC (RESTORING MISSING FUNCTIONS) ---
+    // --- UPDATED AUTH LOGIC ---
+function showAuthStep(step) {
+    // Hide all possible steps
+    const steps = ['auth_choice', 'auth_special', 'auth_otp'];
+    steps.forEach(s => {
+        const el = document.getElementById(s);
+        if(el) el.classList.add('hidden');
+    });
+    
+    if(step === 'choice') document.getElementById('auth_choice').classList.remove('hidden');
+    if(step === 'otp') document.getElementById('auth_otp').classList.remove('hidden');
+    
+    if(step === 'captain' || step === 'admin') {
+        authType = step;
+        document.getElementById('special_title').innerText = step.toUpperCase() + " ACCESS";
+        document.getElementById('auth_special').classList.remove('hidden');
+    }
+}
+
+function guestAccess() {
+    // One-click entry
+    socket.emit('guestSignIn', { password: "" }); 
+    const btn = document.querySelector('button[onclick="guestAccess()"]');
+    if(btn) btn.innerText = "SYNCHRONIZING...";
+}
+
+
+// This handles the password verification via Socket
+
+
+    function handleSpecialLogin() {
+        tempEmail = document.getElementById('spec_email').value.trim();
+        const pass = document.getElementById('spec_pass').value;
+        if(!tempEmail || !pass) return showError("Please enter email and password");
+        socket.emit('specialSignIn', { email: tempEmail, password: pass, type: authType });
+    }
+
+    function handleVerifyOTP() {
+        const otp = document.getElementById('otp_input').value.trim();
+        if(!otp) return showError("Please enter the 6-digit OTP");
+        socket.emit('verifyOTP', { email: tempEmail, otp: otp });
+    }
+
+    function showError(msg) {
+        const err = document.getElementById('authError');
+        err.innerText = msg;
+        err.classList.remove('hidden');
+        setTimeout(() => err.classList.add('hidden'), 4000);
+    }
+
+    // --- AUTH SOCKET LISTENERS (RESTORING MISSING LISTENERS) ---
+    socket.on('authStep', step => { 
+        if(step === 'otp_verify') showAuthStep('otp'); 
+    });
+
+    socket.on('errorMsg', msg => showError(msg));
+
+    socket.on('loginSuccess', data => {
+        user = data;
+        localStorage.setItem('nexus_user', JSON.stringify(data));
+        startApp();
+    });
+        socket.on('guestLoginSuccess', (data) => {
+    // If data is empty or missing name, force a guest identity
+    user = data || { name: "Guest Viewer", role: "guest" };
+    if(!user.name) user.name = "Guest Viewer";
+    if(!user.role) user.role = "guest";
+    
+    localStorage.setItem('nexus_user', JSON.stringify(user));
+    startApp();
+});
+
+    // --- APP START & AUCTION FUNCTIONS ---
+    function logout() { 
+        localStorage.removeItem('nexus_user'); 
+        location.reload(); 
+    }
+
+    // --- ADMIN TEAM MANAGEMENT LOGIC ---
+
+function handleAddTeam() {
+    const name = document.getElementById('tName').value.trim();
+    const budget = document.getElementById('tBudget').value;
+
+    if (!name || !budget) return alert("Enter both Team Name and Budget!");
+
+    socket.emit('createNewTeam', { name, budget });
+    
+    // Clear inputs
+    document.getElementById('tName').value = '';
+    document.getElementById('tBudget').value = '';
+}
+
+// Update the updateTeams listener to also update the management table
+socket.on('updateTeams', (teams) => {
+    // 1. Update the standard Sidebar Purse list (for everyone)
+    renderTeams(teams);
+    updateAssignDropdowns();
+
+    // 2. Update the Admin Franchise Management Table (for Admin only)
+    const mgmtDisplay = document.getElementById('teamManagementDisplay');
+    if (mgmtDisplay && user.role === 'admin') {
+        mgmtDisplay.innerHTML = teams.map(t => `
+            <tr class="hover:bg-white/5 transition border-b border-white/5">
+                <td class="p-4 text-white font-bold">${t.name}</td>
+                <td class="p-4 text-cyan-400 font-black">${t.budget}M</td>
+                <td class="p-4 text-center">
+                    <button onclick="confirmDeleteTeam('${t._id}', '${t.name}')" 
+                            class="bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white p-2 rounded-lg transition-all transform hover:scale-110">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+});
+
+// Add 'adminTeamManagement' to your startApp() function to make it visible
+function startApp() {
+    if(!user) return;
+    document.getElementById('authOverlay').classList.add('hidden');
+    document.getElementById('dashboard').classList.remove('hidden');
+    document.getElementById('adminDirectAssignPanel').classList.remove('hidden');
+    document.getElementById('userName').innerText = user.name;
+    document.getElementById('userRole').innerText = user.role;
+    setupGhostWatch();
+    const chatInputArea = document.getElementById('chatInputContainer');
+    if (chatInputArea) {
+        // Only show the input bar if user is NOT a guest
+        if (user.role === 'admin' || user.role === 'captain') {
+            chatInputArea.style.display = 'block';
+        } else {
+            chatInputArea.style.display = 'none'; // Guests can see chat, but not the input bar
+        }
+    }
+    
+    if (user.role === 'admin') {
+        document.getElementById('adminControls').classList.remove('hidden');
+        document.getElementById('adminPlayerForm').classList.remove('hidden');
+        document.getElementById('adminBonusPanel').classList.remove('hidden');
+        document.getElementById('adminUserManagement').classList.remove('hidden'); 
+        document.getElementById('showcaseBtn').classList.remove('hidden');
+        
+        // --- THIS WAS THE MISSING LINE ---
+        document.getElementById('adminTeamManagement').classList.remove('hidden'); 
+        
+        socket.emit('getAuthorizedUsers'); 
+    }
+    initPriceChart();
+}
+
+    socket.on('initialData', (data) => {
+        currentPlayers = data.players;
+        currentTeams = data.teams;
+        renderPlayers(data.players);
+        renderTeams(data.teams);
+        renderAuction(data.state);
+        if(data.chats) { 
+            document.getElementById('chatBox').innerHTML = ''; 
+            data.chats.forEach(addChatMessage);
+        }
+        if (data.history && data.history.length > 0) {
+        console.log("📈 Restoring graph from database history...");
+        initPriceChart(data.history); 
+    } else {
+        initPriceChart([]); // Initialize empty if no history
+        }
+        updateAssignDropdowns();
+    });
+
+    socket.on('updatePlayers', (p) => { 
+    currentPlayers = p; 
+    // Re-apply filter if user is currently searching
+    if (currentSearchTerm) {
+        filterPlayers();
+    } else {
+        renderPlayers(p);
+    }
+        updateAssignDropdowns();
+});
+    socket.on('updateTeams', (t) => { currentTeams = t; renderTeams(t); });
+    // --- UPDATED VOICE ANNOUNCEMENT LOGIC ---
+let lastHighestBidder = "";
+let lastBidAmount = 0;
+
+socket.on('updateAuction', (state) => {
+    // 1. Always run the original render function to update the UI
+    renderAuction(state);
+
+    // 2. Check if a new bid was placed
+    if (state && state.highestBidder !== 'No Bids Yet') {
+        // Only announce if the bidder or the amount has actually changed
+        if (state.highestBidder !== lastHighestBidder || state.currentBid !== lastBidAmount) {
+            
+            // Trigger the Voice Feature
+            announceBid(state.highestBidder, state.currentBid);
+            
+            // Update tracking variables
+            lastHighestBidder = state.highestBidder;
+            lastBidAmount = state.currentBid;
+        }
+    } else {
+        // Reset tracking if auction is cancelled or new player starts
+        lastHighestBidder = "";
+        lastBidAmount = 0;
+    }
+});
+    socket.on('newMessage', addChatMessage);
+
+    // FIXED TIMER SYNTAX ERROR
+    socket.on('timerUpdate', t => {
+        const bar = document.getElementById('timerBar');
+        if(bar) bar.style.width = (t / 60 * 100) + "%";
+        
+        const val = document.getElementById('timerVal'); // FIXED: Added 'timerVal' ID
+        if(val) {
+            val.innerText = t + "s";
+            if(t <= 10) val.classList.add('text-red-500');
+            else val.classList.remove('text-red-500');
+        }
+    });
+
+    function renderPlayers(players) {
+        document.getElementById('playerList').innerHTML = players.map(p => `
+            <tr class="hover:bg-white/5 border-b border-white/5 group transition-colors">
+                <td class="p-6 font-bold text-white group-hover:text-cyan-400 transition">${p.name}</td>
+                <td class="p-6 text-gray-400 font-bold">${p.strength}</td>
+                <td class="p-4 text-gray-500">${p.phone || 'N/A'}</td>
+                <td class="p-6"><span class="px-3 py-1 rounded-lg text-[10px] font-black border border-white/10 bg-gray-800 tracking-widest uppercase">${p.cardType}</span></td>
+                <td class="p-6 font-black uppercase text-[10px] tracking-widest ${p.status === 'Available' ? 'text-cyan-400' : p.status === 'Unsold' ? 'text-orange-500' : 'text-red-500'}">
+    ${p.status}
+</td>
+                <td class="p-6 text-white font-black">${p.baseValue} M</td>
+                <td class="p-4 text-center">
+                    ${p.imageUrl ? `<img src="${p.imageUrl}" class="w-12 h-8 object-cover rounded border border-cyan-400/50 mx-auto">` : `<i class="fa-solid fa-image text-gray-700"></i>`}
+                </td>
+                <td class="p-6"><div class="flex items-center justify-center gap-4">
+    ${user && user.role === 'admin' && (p.status === 'Available' || p.status === 'Unsold') ? `
+        <div class="flex gap-2">
+            <button onclick="socket.emit('startAuction', { playerId: '${p._id}', baseValue: ${p.baseValue}, isHidden: false })" 
+                    class="bg-cyan-400 text-black text-[10px] px-4 py-1.5 rounded-lg font-black uppercase hover:scale-105 transition">
+                START
+            </button>
+            <button onclick="socket.emit('startAuction', { playerId: '${p._id}', baseValue: ${p.baseValue}, isHidden: true })" 
+                    class="bg-purple-600 text-white text-[10px] px-3 py-1.5 rounded-lg font-black uppercase shadow-lg" 
+                    title="Start as Mystery Pack">
+                <i class="fa-solid fa-box-open"></i>
+            </button>
+        </div>` 
+    : `<span class="text-gray-600 text-[10px] font-bold uppercase italic">${p.soldTo || '-'}</span>`}
+    
+    ${user && user.role === 'admin' ? `
+    <button onclick="triggerImageUpdate('${p._id}')" class="text-cyan-400 hover:text-white transition"><i class="fa-solid fa-camera"></i></button> 
+    <button onclick="confirmDelete('${p._id}', '${p.name}')" class="text-gray-600 hover:text-red-500 transition"><i class="fa-solid fa-trash-can"></i></button>` : ''}
+</div></td>
+            </tr>
+        `).join('');
+    }
+
+    function renderTeams(teams) {
+    const list = document.getElementById('budgetList');
+    const mgmtDisplay = document.getElementById('teamManagementDisplay');
+    
+    list.innerHTML = teams.map(t => {
+        // Count how many players this team has bought
+        const count = currentPlayers.filter(p => p.soldTo.includes(t.name)).length;
+        const isFull = count >= t.maxCapacity;
+
+        return `
+            <div class="p-4 rounded-2xl bg-white/5 border ${isFull ? 'border-red-500/50' : 'border-white/5'} transition-all group mb-2">
+                <div class="flex justify-between items-center mb-1">
+                ${t.logoUrl ? `<img src="${t.logoUrl}" class="w-5 h-5 rounded-full object-contain bg-black/40 border border-white/10">` : `<i class="fa-solid fa-shield-halved text-[10px] opacity-20"></i>`}
+                    <span class="text-sm font-black uppercase tracking-widest text-gray-400">${t.name}</span>
+                    <span class="text-cyan-400 font-black text-lg">${t.budget}M</span>
+                </div>
+                <div class="flex justify-between items-center text-[9px] uppercase font-bold">
+                    <span class="${isFull ? 'text-red-500' : 'text-gray-600'}">Squad: ${count} / ${t.maxCapacity}</span>
+                    <div class="flex-1 mx-3 bg-gray-900 h-1 rounded-full overflow-hidden">
+                        <div class="h-full ${isFull ? 'bg-red-500' : 'bg-cyan-500'}" style="width: ${(count/t.maxCapacity)*100}%"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // Admin Management Table Update
+    if (mgmtDisplay && user.role === 'admin') {
+        mgmtDisplay.innerHTML = teams.map(t => `
+            <tr>
+                <td class="p-4">${t.name}</td>
+                <td class="p-4">${t.budget}M</td>
+<td class="p-4">
+    <button onclick="uploadLogo('${t._id}')" class="text-cyan-400">
+        ${t.logoUrl ? `<img src="${t.logoUrl}" class="w-8 h-8 rounded object-contain">` : '<i class="fa-solid fa-upload"></i>'}
+    </button>
+</td>
+                <td class="p-4">
+                    <input type="number" value="${t.maxCapacity}" 
+                           onchange="socket.emit('setTeamCapacity', { teamId: '${t._id}', capacity: this.value })"
+                           class="w-16 bg-black p-1 rounded border border-white/10 text-center">
+                </td>
+                <td class="p-4 text-center"><button onclick="confirmDeleteTeam('${t._id}', '${t.name}')">❌</button></td>
+            </tr>
+        `).join('');
+    // --- ADD THIS CODE STARTING AT LINE 998 ---
+        const bonusSelect = document.getElementById('bonusTeamSelect');
+        if (bonusSelect) {
+            const currentVal = bonusSelect.value; // Save what was already selected
+            bonusSelect.innerHTML = teams.map(t => `<option value="${t.name}">${t.name}</option>`).join('');
+            if (currentVal) bonusSelect.value = currentVal; // Restore selection
+        }
+    }
+    }
+
+    function renderAuction(state) {
+    const container = document.getElementById('auctionDisplay');
+    if (!container) return;
+
+    // 1. Manage Atmosphere
+    if (state && state.activePlayerId) {
+        if (typeof setAtmosphere === 'function') setAtmosphere(state.activePlayerId.cardType);
+    } else {
+        if (typeof setAtmosphere === 'function') setAtmosphere(null);
+        // Show Nomination screen if no active player
+        container.innerHTML = `
+            <div class="text-center py-20 flex flex-col items-center justify-center animate-in fade-in duration-700">
+                <div class="auction-spinner"></div>
+                <p class="text-3xl font-black uppercase tracking-[0.4em] text-white/20 animate-pulse italic">
+                    Waiting For <span class="text-cyan-400/30">Nomination</span>
+                </p>
+                <div class="h-1 w-20 bg-white/5 mt-4 rounded-full"></div>
+            </div>`;
+        return;
+    }
+
+    const p = state.activePlayerId;
+    const isHighest = user && (user.name === state.highestBidder);
+    const hasSkipped = user && state.skippedTeams && state.skippedTeams.includes(user.name);
+
+    // 2. Prepare Mystery Pack Content
+    const playerCardContent = state.isHidden ? `
+        <div class="mystery-vault w-64 h-80 rounded-[2rem] flex items-center justify-center shadow-2xl">
+            <span class="mystery-glitch">?</span>
+        </div>` : `
+        <div class="premium-card-neon w-64 h-80 rounded-[2rem] p-6 flex flex-col items-center justify-between shadow-2xl">
+            <span class="text-4xl font-black text-cyan-400">Str ${p.strength}</span>
+            <div class="text-center"><h2 class="text-3xl player-name-prominent uppercase italic">${p.name}</h2></div>
+            <div class="bg-cyan-400 text-black px-4 py-1.5 rounded-full font-black text-[10px] uppercase">${p.cardType}</div>
+        </div>`;
+
+    const playerImageContent = state.isHidden ? `
+        <div class="w-full h-full bg-gray-900 flex flex-col items-center justify-center gap-4">
+            <i class="fa-solid fa-lock text-6xl text-cyan-500/20 animate-pulse"></i>
+            <p class="text-cyan-500/40 font-black tracking-widest text-[10px] uppercase">Identity Classified</p>
+        </div>` : `
+        <img src="${p.imageUrl}" onclick="openZoom('${p.imageUrl}')" class="w-full h-full object-cover cursor-zoom-in" title="Click to Zoom">`;
+
+    // 3. Prepare Final Call UI
+    let finalCallUI = "";
+    if (state.isFinalCall) {
+        finalCallUI = `
+            <div class="w-full mb-10 animate-pulse">
+                <div class="bg-yellow-400/10 border-2 border-yellow-400 p-8 rounded-[2rem] text-center shadow-[0_0_50px_rgba(234,255,0,0.2)]">
+                    <p class="text-yellow-400 font-black tracking-[0.5em] text-xs uppercase mb-2">Final Call for ${state.highestBidder}</p>
+                    <h1 class="text-5xl md:text-7xl font-black text-yellow-400 uppercase italic">${state.finalCallText}</h1>
+                </div>
+            </div>`;
+    }
+
+    // 4. Injected HTML
+    container.innerHTML = `
+        <div class="w-full flex flex-col items-center animate-in zoom-in duration-500 py-6">
+            ${finalCallUI}
+            
+            ${!state.isFinalCall ? `
+            <div class="w-full max-w-3xl bg-gray-900 h-3 rounded-full mb-12 overflow-hidden border border-white/10">
+                <div class="h-full bg-red-600 shadow-[0_0_20px_#ff0000] transition-all duration-1000" style="width: ${(state.timeLeft/60)*100}%"></div>
+            </div>` : ''}
+
+            <div class="flex flex-col lg:flex-row items-center gap-10 w-full justify-center">
+                ${playerCardContent}
+                
+                <div class="w-full max-w-md aspect-video rounded-3xl overflow-hidden border-2 border-white/10 shadow-2xl bg-black flex items-center justify-center">
+                    ${playerImageContent}
+                </div>
+
+                <div class="flex flex-col items-center lg:items-start gap-6">
+                    <div class="bid-box-prominent text-center lg:text-left min-w-[300px]">
+                        <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Current evaluation</p>
+                        <p class="text-7xl font-black text-white">${state.currentBid}<span class="text-2xl text-cyan-400 ml-2">M</span></p>
+                        <p class="text-2xl font-bold text-yellow-400 uppercase mt-4">${state.highestBidder || 'NO BIDS YET'}</p>
+                    </div>
+                    <div class="timer-prominent flex items-center gap-3">
+                        <i class="fa-solid fa-clock"></i><span>ENDS IN ${state.timeLeft}S</span>
+                    </div>
+    <div id="ghostWatchContainer" class="flex items-center gap-2 px-4 py-2 bg-purple-500/10 border border-purple-500/30 rounded-full animate-pulse">
+        <i class="fa-solid fa-eye text-purple-400 text-xs"></i>
+        <span id="ghostCount" class="text-[9px] font-black text-purple-300 uppercase tracking-widest">0 Captains Hovering</span>
+    </div>
+                </div>
+            </div>
+
+            ${user && user.role === 'captain' ? `
+            <div class="mt-12 w-full max-w-2xl">
+                <div class="grid grid-cols-3 gap-6 mb-6">
+                    <button onclick="bid(1)" class="bg-gray-800 text-white p-6 rounded-3xl font-black border-2 border-white/5 text-xl ${isHighest || hasSkipped ? 'opacity-20 grayscale' : 'hover:border-cyan-400'}" ${isHighest || hasSkipped ? 'disabled' : ''}>+1M</button>
+                    <button onclick="bid(5)" class="bg-cyan-400 text-black p-6 rounded-3xl font-black text-xl ${isHighest || hasSkipped ? 'opacity-20 grayscale' : ''}" ${isHighest || hasSkipped ? 'disabled' : ''}>+5M</button>
+                    <button onclick="bid(10)" class="bg-cyan-400 text-black p-6 rounded-3xl font-black text-xl ${isHighest || hasSkipped ? 'opacity-20 grayscale' : ''}" ${isHighest || hasSkipped ? 'disabled' : ''}>+10M</button>
+                </div>
+                <button onclick="skip()" class="w-full bg-red-600/10 text-red-500 border-2 border-red-600/30 py-4 rounded-3xl font-black uppercase tracking-[0.3em] ${hasSkipped ? 'hidden' : ''}">SKIP ROUND</button>
+            </div>` : ''}
+
+            ${user && user.role === 'admin' ? `
+            <div class="flex flex-wrap justify-center gap-4 mt-12">
+                ${state.isHidden ? '<button onclick="socket.emit(\'revealPlayer\')" class="bg-green-600 text-white px-8 py-4 rounded-2xl font-black text-sm shadow-xl">🔓 REVEAL PLAYER</button>' : ''}
+                <button onclick="socket.emit('startFinalCall')" class="bg-yellow-500 text-black px-8 py-4 rounded-2xl font-black text-sm shadow-lg">⚡ FINAL CALL</button>
+                <button onclick="socket.emit('sellPlayer')" class="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-sm">SELL PLAYER</button>
+                <button onclick="socket.emit('markUnsold')" class="bg-orange-600 text-white px-8 py-4 rounded-2xl font-black text-sm">MARK UNSOLD</button>
+                <button onclick="socket.emit('cancelAuction')" class="bg-gray-800 text-gray-400 px-8 py-4 rounded-2xl font-black text-sm">CANCEL</button>
+            </div>` : ''}
+        </div>`;
+    
+    // Feature 5 Update
+    if (typeof updateTicker === 'function') updateTicker();
+    }
+        
+    function bid(inc) { if(!user || user.role !== 'captain') return; socket.emit('placeBid', { teamName: user.name, increment: inc }); }
+    function skip() { if(!user || user.role !== 'captain') return; if(confirm("Skip this round?")) socket.emit('skipRound', { teamName: user.name }); }
+    
+    function sendBonus() { 
+        if(user.role !== 'admin') return;
+        const amt = Number(document.getElementById('bonusAmount').value);
+        const team = document.getElementById('bonusTeamSelect').value;
+        if(!amt || !team) return;
+        socket.emit('addBonus', { teamName: team, amount: amt }); 
+        document.getElementById('bonusAmount').value = ''; 
+    }
+        function forceDeduct() {
+    if (user.role !== 'admin') return;
+    
+    const team = document.getElementById('bonusTeamSelect').value;
+    const amt = Number(document.getElementById('bonusAmount').value);
+    
+    if (!amt || !team) return alert("Select team and enter amount!");
+
+    if (confirm(`FORCE DEDUCTION: Are you sure you want to remove ${amt}M from ${team}?`)) {
+        socket.emit('deductPurse', { teamName: team, amount: amt });
+        document.getElementById('bonusAmount').value = ''; 
+    }
+        }
+
+    function confirmDelete(id, name) { if(user.role === 'admin' && confirm(`Delete ${name}?`)) socket.emit('deletePlayer', id); }
+
+    async function addPlayer() {
+        const file = document.getElementById('pImgFile').files[0];
+        let uploadedUrl = "";
+        if (file) {
+            uploadedUrl = await uploadToImgBB(file);
+            if (!uploadedUrl) return alert("Image upload failed!");
+        }
+        const data = { 
+            name: document.getElementById('pName').value, 
+            strength: Number(document.getElementById('pStrength').value), 
+            cardType: document.getElementById('pType').value, 
+            baseValue: Number(document.getElementById('pBase').value),
+            phone: Number(document.getElementById('pPhone').value),
+            imageUrl: uploadedUrl
+        };
+        socket.emit('addPlayer', data);
+        ['pName', 'pStrength', 'pBase', 'pPhone', 'pImgFile'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).value = ''; });
+    }
+
+    async function uploadToImgBB(file) {
+        const apiKey = 'd78a83d90df20f4244a14823e5bdd755';
+        const formData = new FormData();
+        formData.append('image', file);
+        try {
+            const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, { method: 'POST', body: formData });
+            const data = await res.json();
+            return data.data.url;
+        } catch (e) { return null; }
+    }
+
+    let targetPlayerId = null;
+    function triggerImageUpdate(id) { targetPlayerId = id; document.getElementById('updateImgInput').click(); }
+    async function processImageUpdate(input) {
+        const file = input.files[0];
+        if (!file || !targetPlayerId) return;
+        const url = await uploadToImgBB(file);
+        if (url) socket.emit('updatePlayerImage', { playerId: targetPlayerId, imageUrl: url });
+        targetPlayerId = null; input.value = ""; 
+    }
+function renderScarcityMap() {
+    const map = document.getElementById('scarcityMap');
+    if (!map) return;
+
+    const tiers = [
+        { id: 'bt', name: 'Big Time', total: currentPlayers.filter(p => p.cardType === 'BIG TIME').length, sold: currentPlayers.filter(p => p.cardType === 'BIG TIME' && p.status === 'Sold').length },
+        { id: 'ep', name: 'Epic', total: currentPlayers.filter(p => p.cardType === 'EPIC').length, sold: currentPlayers.filter(p => p.cardType === 'EPIC' && p.status === 'Sold').length },
+        { id: 'st', name: 'Showtime', total: currentPlayers.filter(p => p.cardType === 'SHOWTIME').length, sold: currentPlayers.filter(p => p.cardType === 'SHOWTIME' && p.status === 'Sold').length },
+        { id: 'hl', name: 'Highlight', total: currentPlayers.filter(p => p.cardType === 'HIGHLIGHT').length, sold: currentPlayers.filter(p => p.cardType === 'HIGHLIGHT' && p.status === 'Sold').length }
+    ];
+
+    map.innerHTML = tiers.map(tier => {
+        const remaining = tier.total - tier.sold;
+        let dots = "";
+        for (let i = 0; i < tier.total; i++) {
+            // "active" class means the player is still available
+            const isActive = i < remaining;
+            const isPanic = remaining <= 3 && isActive; // Flash if 3 or fewer left
+            dots += `<div class="dot ${tier.id} ${isActive ? 'active' : ''} ${isPanic ? 'fomo-alert' : ''}"></div>`;
+        }
+
+        return `
+            <div class="scarcity-row">
+                <div class="tier-label">${tier.name}</div>
+                <div class="dots-container">${dots}</div>
+                <div class="text-[10px] font-black text-white/20 ml-2">${remaining}</div>
+            </div>`;
+    }).join('');
+}
+        // Add these to update the Direct Assign dropdowns
+function updateAssignDropdowns() {
+    if (user.role !== 'admin') return;
+
+    // 1. Populate Player Dropdown (Only show Available/Unsold)
+    const pSelect = document.getElementById('assignPlayerSelect');
+    if (pSelect) {
+        const available = currentPlayers.filter(p => p.status === 'Available' || p.status === 'Unsold');
+        pSelect.innerHTML = available.map(p => `<option value="${p._id}">${p.name} (Str: ${p.strength})</option>`).join('');
+    }
+
+    // 2. Populate Team Dropdown
+    const tSelect = document.getElementById('assignTeamSelect');
+    if (tSelect) {
+        tSelect.innerHTML = currentTeams.map(t => `<option value="${t.name}">${t.name}</option>`).join('');
+    }
+}
+
+// Call updateAssignDropdowns() inside:
+// 1. socket.on('updatePlayers')
+// 2. socket.on('updateTeams')
+// 3. socket.on('initialData')
+        function handleForceAssign() {
+    const playerId = document.getElementById('assignPlayerSelect').value;
+    const teamName = document.getElementById('assignTeamSelect').value;
+    const price = document.getElementById('assignValueInput').value;
+
+    if (!playerId || !teamName || price === "") return alert("Please select player, team, and set a value.");
+
+    if (confirm(`FORCE ASSIGN: Register player to ${teamName} for ${price}M? (Budget will NOT be deducted)`)) {
+        socket.emit('adminForceAssign', { playerId, teamName, price });
+        document.getElementById('assignValueInput').value = '';
+    }
+        }
+
+
+    function sendChat() { 
+    const input = document.getElementById('chatInput');
+    if(!input) return;
+
+    // Security check: Block if not admin or captain
+    if (user.role !== 'admin' && user.role !== 'captain') {
+        alert("Viewing only: participate in chat is reserved for Captains/Admins.");
+        return;
+    }
+
+    const message = input.value.trim();
+    if(message && user) { 
+        socket.emit('sendMessage', { 
+            sender: user.name, 
+            role: user.role, 
+            text: message 
+        }); 
+        input.value = ''; 
+    }
+    }
+
+    function addChatMessage(data) {
+    const box = document.getElementById('chatBox');
+    if(!box) return;
+    const isMe = user && data.sender === user.name;
+    
+    // Different color for Admin names
+    const nameColor = data.role === 'admin' ? 'text-yellow-400' : 'text-cyan-400';
+    const roleLabel = data.role === 'admin' ? '[ADMIN]' : '';
+
+    const div = document.createElement('div');
+    div.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
+    div.innerHTML = `
+        <span class="text-[9px] font-black uppercase ${nameColor} mb-1 px-2">
+            ${data.sender} ${roleLabel}
+        </span>
+        <div class="max-w-[85%] p-4 rounded-3xl text-sm ${isMe ? 'bg-cyan-600/20 text-cyan-100 rounded-tr-none' : 'bg-white/5 text-gray-300 rounded-tl-none'}">
+            ${data.text}
+        </div>`;
+    box.appendChild(div); 
+    box.scrollTop = box.scrollHeight;
+    }
+        // --- ADMIN MANAGEMENT LOGIC ---
+function addUser() {
+    const data = {
+        email: document.getElementById('uEmail').value.trim(),
+        password: document.getElementById('uPass').value,
+        teamName: document.getElementById('uTeam').value.trim(),
+        budget: document.getElementById('uBudget').value || 2000, // Sends custom budget
+        role: document.getElementById('uRole').value
+    };
+    
+    if(!data.email || !data.password || !data.teamName) return alert("Fill Email, Password, and Team Name!");
+    
+    socket.emit('createNewUser', data);
+    
+    // Clear fields
+    document.getElementById('uEmail').value = '';
+    document.getElementById('uPass').value = '';
+    document.getElementById('uTeam').value = '';
+    document.getElementById('uBudget').value = '';
+}
+
+socket.on('authorizedUsersList', (users) => {
+    const display = document.getElementById('userListDisplay');
+    if(!display) return;
+    
+    display.innerHTML = users.map(u => `
+        <tr class="hover:bg-white/5 transition">
+            <td class="p-4 text-white">${u.email}</td>
+            <td class="p-4 text-cyan-400">${u.name}</td>
+            <td class="p-4"><span class="px-2 py-1 bg-gray-800 rounded text-[10px]">${u.role}</span></td>
+            <td class="p-4">
+                <button onclick="socket.emit('deleteAuthorizedUser', '${u._id}')" class="text-red-500 hover:text-white transition">
+                    <i class="fa-solid fa-user-minus"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+});
+
+// Update startApp to load users and show the div
+function handleAddTeam() {
+    const name = document.getElementById('tName').value.trim();
+    const budget = document.getElementById('tBudget').value;
+    if (!name || !budget) return alert("Enter both Team Name and Budget!");
+    socket.emit('createNewTeam', { name, budget });
+    document.getElementById('tName').value = '';
+    document.getElementById('tBudget').value = '';
+}
+        function triggerReduceSquad() {
+    if (user.role !== 'admin') return;
+    
+    const team = document.getElementById('bonusTeamSelect').value;
+    const count = Number(document.getElementById('bonusAmount').value);
+    
+    if (!team || !count || count <= 0) {
+        return alert("Select a team and type how many players to remove (e.g., 1) in the Amt box.");
+    }
+
+    if (confirm(`SQUAD REDUCTION: Remove ${count} player(s) from ${team} and make them Available again?`)) {
+        socket.emit('reduceSquadCount', { teamName: team, count: count });
+        document.getElementById('bonusAmount').value = ''; // Clear input
+    }
+        }
+        // --- DYNAMIC PLAYLIST SYSTEM ---
+
+// 1. YOUR SONG LINKS
+const rawPlaylist = [
+    "https://files.catbox.moe/mvy2c3.mp3",
+    "https://files.catbox.moe/f3j2pw.mp3",
+    "https://files.catbox.moe/1evd47.mp3",
+    "https://files.catbox.moe/z6365e.mp3",
+    "https://files.catbox.moe/0aigvd.mp3",
+    "https://files.catbox.moe/0lt8hw.mp3",
+    "https://files.catbox.moe/atvlzz.mp3",
+    "https://files.catbox.moe/kaj5f8.mp3",
+    "https://files.catbox.moe/vy2m4u.mp3",
+    "https://files.catbox.moe/36hdfx.mp3",
+    "https://files.catbox.moe/9n2y7g.mp3",
+    "https://files.catbox.moe/u9o4zk.mp3"
+];
+
+// 2. SHUFFLE FUNCTION
+function shuffleArray(array) {
+    let shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+}
+
+let bgPlaylist = shuffleArray(rawPlaylist);
+let currentPlaylistIndex = 0;
+let activeMode = 'normal';
+
+const bgAudio = document.getElementById('bgMusic');
+        const tracks = {
+    normal: document.getElementById('bgMusic'),
+    intro: document.getElementById('introMusic'),
+    hype: document.getElementById('hypeMusic')
+};
+
+// Add all audio elements to a list for easy stopping
+const allAudioElements = [bgAudio, tracks.intro, tracks.hype];
+
+function loadPlaylistSong(index) {
+    if (index >= bgPlaylist.length) {
+        bgPlaylist = shuffleArray(rawPlaylist);
+        currentPlaylistIndex = 0;
+    }
+    console.log("Attempting to play:", bgPlaylist[currentPlaylistIndex]);
+    bgAudio.src = bgPlaylist[currentPlaylistIndex];
+    bgAudio.load();
+}
+
+function switchTrack(newMode) {
+    activeMode = newMode;
+    
+    // Stop every audio element
+    allAudioElements.forEach(audio => {
+        if (audio) {
+            audio.pause();
+            audio.currentTime = 0;
+        }
+    });
+
+    const currentTrack = tracks[newMode];
+    if (!currentTrack) return;
+
+    if (newMode === 'normal') {
+        if (!bgAudio.src || bgAudio.src === "") {
+            loadPlaylistSong(currentPlaylistIndex);
+        }
+        bgAudio.volume = 0.2;
+        bgAudio.play().catch(e => console.log("Playback interaction required"));
+    } else {
+        currentTrack.volume = 0.3;
+        currentTrack.play().catch(e => console.log("Playback interaction required"));
+    }
+}
+        
+
+function stopAllMusic() {
+    allAudioElements.forEach(audio => {
+        audio.pause();
+        audio.currentTime = 0; // Reset to start
+    });
+}
+// --- FIXED MUTE TOGGLE ---
+function toggleMusic() {
+    const musicIcon = document.getElementById('musicIcon');
+    const currentTrack = tracks[activeMode] || bgAudio;
+
+    if (!currentTrack.paused) {
+        currentTrack.pause();
+        musicIcon.className = "fa-solid fa-volume-xmark";
+        musicIcon.style.color = "#ff4444";
+    } else {
+        currentTrack.play();
+        musicIcon.className = "fa-solid fa-volume-high";
+        musicIcon.style.color = "#00e5ff";
+    }
+}
+        bgAudio.addEventListener('ended', function() {
+    currentPlaylistIndex++;
+    loadPlaylistSong(currentPlaylistIndex);
+    if (activeMode === 'normal') bgAudio.play();
+});
+
+// Skip broken links
+bgAudio.addEventListener('error', function() {
+    console.log("Link failed, skipping to next...");
+    currentPlaylistIndex++;
+    loadPlaylistSong(currentPlaylistIndex);
+    if (activeMode === 'normal') bgAudio.play();
+});
+
+// Updated Start Audio function for the Volume Popup
+function startAuctionAudio() {
+    loadPlaylistSong(currentPlaylistIndex);
+    switchTrack('normal'); 
+    document.getElementById('volumePopup').classList.add('hidden');
+    document.getElementById('musicToggle').classList.remove('hidden');
+}
+
+// --- SFX DUCKING LOGIC (For Start/Sold Events) ---
+function playStartEffect() {
+    const currentTrack = (activeMode === 'normal') ? bgAudio : tracks[activeMode];
+    const originalVol = currentTrack.volume;
+    
+    currentTrack.volume = 0.05; // Duck volume
+    const startSfx = document.getElementById('startSfx');
+    startSfx.currentTime = 0;
+    startSfx.play();
+    
+    setTimeout(() => { currentTrack.volume = originalVol; }, 3000);
+}
+
+function playSoldEffect() {
+    const currentTrack = (activeMode === 'normal') ? bgAudio : tracks[activeMode];
+    const originalVol = currentTrack.volume;
+
+    currentTrack.volume = 0.05; // Duck volume
+    const soldSfx = document.getElementById('soldSfx');
+    soldSfx.currentTime = 0;
+    soldSfx.play();
+
+    setTimeout(() => { currentTrack.volume = originalVol; }, 4000);
+}
+        function confirmDeleteTeam(id, name) {
+    if (user.role !== 'admin') return;
+    
+    // Safety prompt
+    const verification = confirm(`⚠️ WARNING: Are you sure you want to PERMANENTLY delete team "${name}" and all its budget data?`);
+    
+    if (verification) {
+        console.log("Deleting team:", name);
+        socket.emit('deleteTeam', id);
+    }
+        }
+        // --- IMAGE ZOOM LOGIC ---
+function openZoom(url) {
+    const modal = document.getElementById('imageZoomModal');
+    const zoomedImg = document.getElementById('zoomedImage');
+    
+    zoomedImg.src = url;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    
+    // Disable scrolling on background while zoomed
+    document.body.style.overflow = 'hidden';
+}
+
+function closeZoom() {
+    const modal = document.getElementById('imageZoomModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    
+    // Re-enable scrolling
+    document.body.style.overflow = 'auto';
+}
+        // --- MEGA RESET FUNCTION ---
+function triggerMegaReset() {
+    if (user.role !== 'admin') return;
+
+    const confirm1 = confirm("🚨 ATTENTION: You are about to erase the ENTIRE database. This cannot be undone. Continue?");
+    if (confirm1) {
+        const confirm2 = confirm("FINAL WARNING: This will delete every Player, Team, and Chat record. Are you 100% sure?");
+        if (confirm2) {
+            const safetyCode = prompt("Type 'CONFIRM RESET' to proceed:");
+            if (safetyCode === "CONFIRM RESET") {
+                socket.emit('hardResetDatabase');
+            } else {
+                alert("Reset cancelled. Code was incorrect.");
+            }
+        }
+    }
+}
+        function triggerResetPurse() {
+    if (user.role !== 'admin') return;
+    const team = document.getElementById('bonusTeamSelect').value;
+    if (!team) return alert("Select a team first!");
+
+    if (confirm(`ARE YOU SURE? This will wipe all auction progress for ${team} and reset their money to original.`)) {
+        socket.emit('resetPurse', { teamName: team });
+    }
+        }
+        function filterPlayers() {
+    const input = document.getElementById('playerSearchInput');
+    currentSearchTerm = input.value.toLowerCase();
+    
+    // Filter the currentPlayers array based on name or cardType (Tier)
+    const filtered = currentPlayers.filter(p => 
+        p.name.toLowerCase().includes(currentSearchTerm) || 
+        p.cardType.toLowerCase().includes(currentSearchTerm)
+    );
+    
+    // Use the existing render function to show only matches
+    renderPlayers(filtered);
+        }
+        let slideshowActive = false;
+
+// 1. Local Close (Only closes for the person who clicks it)
+function localCloseSlideshow() {
+    document.getElementById('slideshowOverlay').classList.add('hidden');
+    document.body.style.overflow = 'auto'; // Re-enable scrolling
+}
+
+// 2. Updated Toggle (For Admin to stop it for EVERYONE)
+function toggleSlideshow() {
+    // If it's currently running, we want to stop it
+    if (slideshowActive) {
+        socket.emit('toggleSlideshow', false);
+        slideshowActive = false;
+    } else {
+        // If it's not running, we want to start it
+        socket.emit('toggleSlideshow', true);
+        slideshowActive = true;
+    }
+    
+    // Update the dashboard button appearance
+    const btn = document.getElementById('showcaseBtn');
+    if (btn) {
+        btn.innerText = slideshowActive ? "STOP SHOWCASE" : "SHOWCASE UNSOLD";
+        if (slideshowActive) {
+            btn.classList.add('bg-red-600');
+            btn.classList.remove('bg-purple-600');
+        } else {
+            btn.classList.remove('bg-red-600');
+            btn.classList.add('bg-purple-600');
+        }
+    }
+}
+        socket.on('updateSlideshow', (state) => {
+    const overlay = document.getElementById('slideshowOverlay');
+    const content = document.getElementById('slideshowContent');
+    const dotsContainer = document.getElementById('slideshowDots');
+
+    // 1. Safety Check: If no state or not active, hide everything
+    if (!state || !state.active || !state.players || state.players.length === 0) {
+        overlay.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+        return;
+    }
+
+    // 2. Show the Overlay
+    overlay.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+
+    // 3. Get the current player
+    const p = state.players[state.currentIndex];
+    if (!p) return;
+
+    // 4. Inject the Content (Mobile Optimized)
+    content.innerHTML = `
+        <div class="w-full lg:w-1/2 flex justify-center animate-in zoom-in duration-700">
+            <div class="relative group w-full max-w-md">
+                <div class="absolute -inset-4 bg-orange-500/20 blur-2xl rounded-full opacity-50"></div>
+                <img src="${p.imageUrl || 'https://via.placeholder.com/600x400?text=No+Screenshot'}" 
+                     class="relative w-full aspect-video object-cover rounded-3xl border-2 border-orange-500/40 shadow-2xl">
+            </div>
+        </div>
+        
+        <div class="w-full lg:w-1/2 text-center lg:text-left animate-in fade-in slide-in-from-bottom-10 duration-700">
+            <span class="bg-orange-500/20 text-orange-400 border border-orange-500/30 px-4 py-1 rounded-full text-[10px] font-black tracking-widest uppercase">
+                Available for Re-Auction
+            </span>
+            <h1 class="text-5xl md:text-7xl lg:text-8xl font-black text-white mt-6 mb-4 uppercase italic leading-none break-words">
+                ${p.name}
+            </h1>
+            
+            <div class="flex items-center justify-center lg:justify-start gap-8 mb-8">
+                <div>
+                    <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest mb-1">Star Rating</p>
+                    <p class="text-4xl font-black text-cyan-400">★ ${p.strength}</p>
+                </div>
+                <div class="w-px h-10 bg-white/10"></div>
+                <div>
+                    <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest mb-1">Base Price</p>
+                    <p class="text-4xl font-black text-yellow-400">${p.baseValue}<span class="text-lg ml-1">M</span></p>
+                </div>
+            </div>
+            
+            <div class="p-4 rounded-2xl bg-white/5 border border-white/10 inline-block">
+                <p class="text-gray-400 text-xs font-bold uppercase tracking-tighter">
+                   Tier: <span class="text-white ml-2">${p.cardType}</span>
+                </p>
+            </div>
+        </div>
+    `;
+
+    // 5. Update Navigation Dots
+    if (dotsContainer) {
+        dotsContainer.innerHTML = state.players.map((_, i) => `
+            <div class="h-1.5 rounded-full transition-all duration-700 ${i === state.currentIndex ? 'bg-orange-500 w-10' : 'bg-gray-800 w-4'}"></div>
+        `).join('');
+    }
+});
+async function uploadCsvRoster() {
+    const fileInput = document.getElementById('csvFileInput');
+    const statusText = document.getElementById('csvStatus');
+    const IMGBB_API_KEY = 'd78a83d90df20f4244a14823e5bdd755'; // Your API Key
+    
+    if (!fileInput.files[0]) return alert("Please select the CSV file.");
+    
+    statusText.innerText = "⏳ READING CSV FILE...";
+
+    Papa.parse(fileInput.files[0], {
+        header: true,
+        skipEmptyLines: true,
+        transformHeader: (h) => h.trim(),
+        complete: async function(results) {
+            const rawData = results.data;
+            const total = rawData.length;
+            const processedPlayers = [];
+
+            statusText.innerText = `⏳ CONVERTING 0 / ${total} IMAGES TO IMGBB...`;
+
+            for (let i = 0; i < total; i++) {
+                const row = rawData[i];
+                
+                // 1. Helper to find values
+                const getVal = (keys) => {
+                    const actualKey = Object.keys(row).find(k => 
+                        keys.some(kw => k.toLowerCase().includes(kw.toLowerCase()))
+                    );
+                    return actualKey ? row[actualKey] : null;
+                };
+
+                const name = getVal(['Full Name']) || "Unknown Player";
+                const strength = parseInt(getVal(['Team Strength'])) || 0;
+                const phone = getVal(['Phone', 'Whatsapp']) || "";
+                const s3Url = getVal(['Screenshot', 'amazonaws']) || "";
+
+                // 2. CONVERT TO IMGBB
+                let finalImageUrl = "";
+                if (s3Url && s3Url.startsWith('http')) {
+                    try {
+                        const formData = new FormData();
+                        formData.append('image', s3Url.trim()); // ImgBB accepts a URL string!
+                        
+                        const response = await fetch(`https://api.imgbb.com/1/upload?key=d78a83d90df20f4244a14823e5bdd755`, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const imgData = await response.json();
+                        if (imgData.success) {
+                            finalImageUrl = imgData.data.url;
+                        }
+                    } catch (err) {
+                        console.error("ImgBB Upload Failed for " + name, err);
+                    }
+                }
+
+                // 3. Auto-Tiering
+                let cardType = "HIGHLIGHT"; let baseValue = 2;
+                if (strength >= 3300) { cardType = "BIG TIME"; baseValue = 20; }
+                else if (strength >= 3250) { cardType = "EPIC"; baseValue = 10; }
+                else if (strength >= 3200) { cardType = "SHOWTIME"; baseValue = 5; }
+                else if (strength >= 3150) { cardType = "HIGHLIGHT"; baseValue = 2; }
+
+                processedPlayers.push({
+                    name: name.trim(),
+                    strength: strength,
+                    cardType: cardType,
+                    baseValue: baseValue,
+                    phone: phone,
+                    imageUrl: finalImageUrl, // Now a permanent ImgBB link!
+                    status: 'Available',
+                    soldTo: '-'
+                });
+
+                // Update Progress UI
+                statusText.innerText = `⏳ CONVERTING IMAGES: ${i + 1} / ${total}...`;
+            }
+
+            // 4. Send to Database
+            statusText.innerText = `🚀 SYNCING ${total} PLAYERS TO DATABASE...`;
+            socket.emit('bulkAddPlayers', processedPlayers);
+        }
+    });
+}
+
+// Add this listener to confirm success
+socket.on('bulkImportSuccess', (msg) => {
+    document.getElementById('csvStatus').innerText = "✅ " + msg;
+    alert(msg);
+    document.getElementById('csvFileInput').value = "";
+});
+        // --- MEGA LOADER LOGIC ---
+const CIRCUMFERENCE = 754; // 2 * PI * 120 (radius)
+
+function updateMegaLoader(percent, status) {
+    const circle = document.getElementById('progressCircle');
+    const text = document.getElementById('loadPercent');
+    const statusText = document.getElementById('loadStatus');
+    const loader = document.getElementById('megaLoader');
+    
+    if(!circle || !text || !loader) return;
+
+    const offset = CIRCUMFERENCE - (percent / 100) * CIRCUMFERENCE;
+    circle.style.strokeDashoffset = offset;
+    text.innerText = `${Math.round(percent)}%`;
+    if(status) statusText.innerText = status;
+
+    if(percent >= 100) {
+        setTimeout(() => {
+            // Smoothly fade out and shrink
+            loader.style.opacity = '0';
+            loader.style.transform = 'scale(1.1)';
+            loader.style.pointerEvents = 'none';
+            
+            // Show music toggle
+            const music = document.getElementById('musicToggle');
+            if(music) music.classList.remove('hidden');
+        }, 800);
+    }
+}
+
+// 1. Initial State
+document.addEventListener('DOMContentLoaded', () => updateMegaLoader(15, "Loading Assets"));
+
+// 2. Update when socket connects
+socket.on('connect', () => {
+    updateMegaLoader(45, "Nexus Established");
+});
+
+// 3. Update when initial data arrives (Update your existing initialData listener)
+socket.on('initialData', (data) => {
+    updateMegaLoader(70, "Data Received");
+    
+    currentPlayers = data.players;
+    currentTeams = data.teams;
+    renderPlayers(data.players);
+    renderTeams(data.teams);
+    renderAuction(data.state);
+    if(data.stats) updateStatsUI(data.stats);
+    renderSquadGrid();
+    if(data.chats) { 
+        document.getElementById('chatBox').innerHTML = ''; 
+        data.chats.forEach(addChatMessage); 
+    }
+    
+    // START THE ASSET CHECK HERE
+    checkAssets();
+    renderScarcityMap();
+
+    setTimeout(() => updateMegaLoader(100, "Ready for Action"), 500);
+});
+
+// 4. Update Error State if server is down
+socket.on('connect_error', () => {
+    updateMegaLoader(0, "Connection Error - Retrying");
+    document.getElementById('loadStatus').classList.add('text-red-500');
+});
+
+        // --- CLEAR PLAYERS ONLY FUNCTION ---
+function triggerClearPlayers() {
+    if (user.role !== 'admin') return;
+
+    const confirm1 = confirm("⚠️ Are you sure you want to delete ALL players from the roster?");
+    if (confirm1) {
+        const confirm2 = confirm("This will NOT delete teams, budgets, or captain accounts. Proceed with clearing players?");
+        if (confirm2) {
+            socket.emit('clearOnlyPlayers');
+        }
+    }
+}
+        // --- ASSET SYNC LOGIC ---
+async function checkAssets() {
+    const isSynced = localStorage.getItem('nexus_assets_synced');
+    const loader = document.getElementById('megaLoader');
+    
+    // Only show prompt if not synced and we have players to sync
+    if (!isSynced && currentPlayers.length > 0) {
+        // Pause the megaLoader at 85%
+        updateMegaLoader(85, "Waiting for Asset Sync");
+        document.getElementById('assetPrompt').classList.remove('hidden');
+    } else {
+        // If already synced, just finish the megaLoader
+        updateMegaLoader(100, "Ready for Action");
+    }
+}
+
+async function startAssetSync() {
+    const btn = document.getElementById('startSyncBtn');
+    const progressContainer = document.getElementById('syncProgressContainer');
+    const syncBar = document.getElementById('syncBar');
+    const syncText = document.getElementById('syncText');
+    
+    btn.classList.add('hidden');
+    progressContainer.classList.remove('hidden');
+
+    const imageUrls = currentPlayers
+        .map(p => p.imageUrl)
+        .filter(url => url && url.startsWith('http'));
+
+    const total = imageUrls.length;
+    let loaded = 0;
+
+    if (total === 0) {
+        finishSync();
+        return;
+    }
+
+    // Load images one by one
+    const promises = imageUrls.map(url => {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.src = url;
+            img.onload = img.onerror = () => {
+                loaded++;
+                const percent = (loaded / total) * 100;
+                syncBar.style.width = percent + "%";
+                syncText.innerText = `Syncing Visuals: ${Math.round(percent)}%`;
+                resolve();
+            };
+        });
+    });
+
+    await Promise.all(promises);
+    finishSync();
+}
+
+function finishSync() {
+    localStorage.setItem('nexus_assets_synced', 'true');
+    document.getElementById('assetPrompt').classList.add('opacity-0');
+    setTimeout(() => {
+        document.getElementById('assetPrompt').classList.add('hidden');
+        updateMegaLoader(100, "Sync Complete");
+    }, 500);
+}
+
+// UPDATE: Modify your existing initialData listener to trigger the check
+
+        
+        // 1. Opens the device's native keyboard
+function openEmojiPicker() {
+    const input = document.getElementById('nativeEmojiTrigger');
+    input.focus();
+    input.click(); // Forces mobile devices to show keyboard
+}
+
+// 2. Catches whatever the user typed/picked and sends it
+function handleNativeEmoji(input) {
+    const char = input.value.trim();
+    if (char) {
+        // Emojis can be multi-character, so we take the full string
+        sendReaction(char);
+        
+        // Reset the input immediately so they can send another one
+        input.value = '';
+        
+        // Optional: blur input after a short delay on mobile to hide keyboard
+        // setTimeout(() => input.blur(), 100); 
+    }
+}
+
+// 3. The existing Reaction send/receive logic (Keep this from before)
+function sendReaction(emoji) {
+    socket.emit('sendReaction', emoji);
+}
+
+socket.on('newReaction', (emoji) => {
+    renderFlyingEmoji(emoji);
+});
+
+function renderFlyingEmoji(emoji) {
+    const chatContainer = document.getElementById('chatBox').parentElement;
+    const el = document.createElement('div');
+    el.className = 'flying-emoji';
+    el.innerText = emoji;
+    
+    const randomX = (Math.random() * 120 - 60) + "px";
+    el.style.setProperty('--random-x', randomX);
+    
+    chatContainer.appendChild(el);
+    setTimeout(() => el.remove(), 2000);
+}
+        // --- SEPARATE PUBLIC CHAT LOGIC ---
+
+function sendPubChat() {
+    const input = document.getElementById('pubInput');
+    const msg = input.value.trim();
+    
+    if (msg && user) {
+        // Emit to a different event than the main chat
+        socket.emit('public_msg_send', { 
+            sender: user.name, 
+            text: msg 
+        });
+        input.value = ''; // Clear input
+    }
+}
+
+// Receiver for Public Arena
+socket.on('public_msg_receive', (data) => {
+    const box = document.getElementById('pubChatBox');
+    if(!box) return;
+
+    const isMe = user && data.sender === user.name;
+    const div = document.createElement('div');
+    
+    // Style: Public messages use an orange accent to look different from Official
+    div.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-1`;
+    div.innerHTML = `
+        <span class="text-[8px] font-black uppercase text-orange-400 mb-1 px-2">${data.sender}</span>
+        <div class="max-w-[85%] p-3 rounded-2xl text-xs ${isMe ? 'bg-orange-500/10 text-white rounded-tr-none border border-orange-500/20' : 'bg-white/5 text-gray-300 rounded-tl-none border border-white/5'}">
+            ${data.text}
+        </div>`;
+        
+    box.appendChild(div);
+    
+    // Auto scroll to bottom
+    box.scrollTop = box.scrollHeight;
+});
+        // --- PUBLIC ARENA REACTION LOGIC ---
+
+function sendPubReaction(emoji) {
+    socket.emit('public_reaction_send', emoji);
+}
+
+function openPubEmojiPicker() {
+    document.getElementById('pubEmojiTrigger').focus();
+}
+
+function handlePubNativeEmoji(input) {
+    if (input.value.trim()) {
+        sendPubReaction(input.value.trim());
+        input.value = '';
+    }
+}
+
+// Receiver for Public Reactions
+socket.on('public_reaction_receive', (emoji) => {
+    renderPubFlyingEmoji(emoji);
+});
+
+function renderPubFlyingEmoji(emoji) {
+    const container = document.getElementById('pubChatBox');
+    const el = document.createElement('div');
+    el.className = 'flying-emoji'; // Reuses your existing CSS animation
+    el.innerText = emoji;
+    
+    // Position it specifically over the public box
+    const randomX = (Math.random() * 100 - 50) + "px";
+    el.style.setProperty('--random-x', randomX);
+    el.style.right = "40px"; 
+    
+    container.appendChild(el);
+    setTimeout(() => el.remove(), 2000);
+}
+
+async function generatePDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+
+    const colors = {
+        black: [0, 0, 0],
+        cyan: [0, 229, 255],
+        yellow: [234, 255, 0],
+        slate: [20, 25, 35]
+    };
+
+    // Background Helper - ALWAYS called before text/tables
+    const applyBG = () => {
+        doc.setFillColor(0, 0, 0);
+        doc.rect(0, 0, 210, 297, 'F');
+    };
+
+    // --- PAGE 1: ANALYTICS & PURSES ---
+    applyBG();
+
+    doc.setTextColor(...colors.cyan);
+    doc.setFontSize(28);
+    doc.setFont("helvetica", "bold");
+    doc.text("NEXUS LEGENDS", 105, 20, { align: "center" });
+    
+    doc.setTextColor(150, 150, 150);
+    doc.setFontSize(9);
+    doc.text("OFFICIAL AUCTION FINANCIAL REPORT", 105, 27, { align: "center" });
+
+    // Global Stats Summary
+    const totalCount = currentPlayers.length;
+    const soldCount = currentPlayers.filter(p => p.status === 'Sold').length;
+    doc.setFillColor(...colors.slate);
+    doc.roundedRect(15, 35, 180, 25, 3, 3, 'F');
+    doc.setFontSize(10);
+    doc.setTextColor(255, 255, 255);
+    doc.text(`TOTAL POOL: ${totalCount}  |  SOLD: ${soldCount}  |  UNSOLD: ${totalCount - soldCount}`, 105, 50, { align: "center" });
+
+    // Market Graph
+    const chartCanvas = document.getElementById('priceChart');
+    if (chartCanvas) {
+        const chartImg = chartCanvas.toDataURL('image/png', 1.0);
+        doc.setTextColor(...colors.yellow);
+        doc.text("MARKET PRICE INDEX", 15, 75);
+        doc.addImage(chartImg, 'PNG', 15, 80, 180, 45);
+    }
+
+    // Franchise Summary
+    doc.setTextColor(...colors.cyan);
+    doc.text("FRANCHISE PURSE & SQUAD STATUS", 15, 140);
+    const franchiseData = currentTeams.map(t => [
+        t.name.toUpperCase(), 
+        `${currentPlayers.filter(p => p.status === 'Sold' && p.soldTo.includes(t.name)).length} / ${t.maxCapacity}`, 
+        `${t.budget} M`
+    ]);
+
+    doc.autoTable({
+        startY: 145,
+        head: [['FRANCHISE', 'SQUAD', 'REMAINING PURSE']],
+        body: franchiseData,
+        theme: 'grid',
+        styles: { fontSize: 8, halign: 'center', fillColor: [10, 10, 10], textColor: [255, 255, 255] },
+        headStyles: { fillColor: [0, 80, 100] },
+        columnStyles: { 0: { halign: 'left' }, 2: { textColor: colors.cyan, fontStyle: 'bold' } }
+    });
+
+    // --- PAGE 2: PLAYER SOLD DATA (FIXED & SEPARATED) ---
+    doc.addPage();
+    applyBG(); // Background first!
+
+    doc.setTextColor(...colors.yellow);
+    doc.setFontSize(16);
+    doc.text("OFFICIAL SIGNINGS LOG", 15, 20);
+
+    // FIXED: Mapping logic to ensure data is captured correctly
+    const soldPlayersRows = currentPlayers.filter(p => p.status === 'Sold').map((p, i) => {
+        let team = "-";
+        let price = "0";
+        if (p.soldTo && p.soldTo.includes('(')) {
+            const parts = p.soldTo.split('(');
+            team = parts[0].trim();
+            price = parts[1].split(')')[0].trim(); // Extracts "150M" from "150M)"
+        } else {
+            team = p.soldTo || "N/A";
+        }
+        return [i + 1, p.name.toUpperCase(), p.strength, p.cardType, team.toUpperCase(), price];
+    });
+
+    doc.autoTable({
+        startY: 30, // Starts at the top of Page 2
+        head: [['#', 'PLAYER IDENTITY', 'STRENGTH', 'TIER', 'FRANCHISE', 'PRICE']],
+        body: soldPlayersRows,
+        theme: 'grid',
+        styles: { fontSize: 8, cellPadding: 3, fillColor: [15, 15, 15], textColor: [240, 240, 240], lineColor: [40, 40, 40] },
+        headStyles: { fillColor: colors.cyan, textColor: [0, 0, 0], fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [22, 22, 22] },
+        columnStyles: { 2: { textColor: colors.yellow, fontStyle: 'bold' }, 5: { textColor: colors.cyan, fontStyle: 'bold', halign: 'right' } },
+        
+        // This hook ensures that IF the table flows to Page 3, 4, etc., those pages are also black
+        didDrawPage: function(data) {
+            const totalPages = doc.internal.getNumberOfPages();
+            // We set the fill color but do NOT draw a rectangle here 
+            // because it would cover the rows. Instead, we style the table itself.
+            doc.setPage(data.pageNumber);
+        }
+    });
+
+    // --- FOOTER ---
+    const totalPages = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        doc.setFontSize(7);
+        doc.setTextColor(100, 100, 100);
+        doc.text(`NEXUS LEGENDS - OFFICIAL LOG - PAGE ${i} OF ${totalPages}`, 105, 290, { align: "center" });
+        doc.text("GENERATED BY RAIZO CORE SYSTEM", 105, 292, { align: "center" });
+    }
+
+    doc.save(`Nexus_Elite_Report_${new Date().getTime()}.pdf`);
+        }
+
+            
+
+    if(user) startApp();
+    else showAuthStep('choice');
+        // If the server is slow, let the user see the login screen after 5 seconds anyway
+setTimeout(() => {
+    const loader = document.getElementById('megaLoader');
+    if (loader && loader.style.opacity !== '0') {
+        updateMegaLoader(100, "Proceeding to Login");
+    }
+}, 5000);
+        // --- SOLD CELEBRATION LOGIC ---
+socket.on('celebrateSold', (data) => {
+    const overlay = document.getElementById('soldOverlay');
+    const card = overlay.querySelector('.relative');
+    
+    // 1. Populate Card Data
+    document.getElementById('soldPlayerImg').src = data.player.imageUrl || 'https://via.placeholder.com/200';
+    document.getElementById('soldPlayerName').innerText = data.player.name;
+    document.getElementById('soldPlayerStrength').innerText = "★ " + data.player.strength;
+    document.getElementById('soldPlayerTier').innerText = data.player.cardType;
+    document.getElementById('soldToTeam').innerText = data.teamName;
+    document.getElementById('soldPrice').innerText = data.price + " M";
+
+    // 2. Show Overlay
+    overlay.classList.remove('hidden');
+    document.body.style.overflow = 'hidden'; // Stop scroll
+
+    // 3. Trigger Fireworks (Massive)
+    triggerFireworks();
+    if (priceChart) {
+        priceChart.data.labels.push(data.player.name);
+        priceChart.data.datasets[0].data.push(data.price);
+        
+        // Color logic: Green if price went up, Red if it went down
+        const prices = priceChart.data.datasets[0].data;
+        const last = prices[prices.length - 1];
+        const prev = prices[prices.length - 2] || 0;
+        
+        priceChart.data.datasets[0].borderColor = last >= prev ? '#10b981' : '#ef4444';
+        document.getElementById('graphStatus').innerText = last >= prev ? 'Bullish Market' : 'Bearish Market';
+        document.getElementById('graphStatus').className = `text-[10px] font-black uppercase tracking-tighter ${last >= prev ? 'text-green-400' : 'text-red-400'}`;
+
+        // Keep only last 20 sales on graph
+        if (priceChart.data.labels.length > 20) {
+            priceChart.data.labels.shift();
+            priceChart.data.datasets[0].data.shift();
+        }
+        priceChart.update();
+    }
+    
+    // Refresh Scarcity Map
+    renderScarcityMap();
+
+
+
+    // 4. Card Animation
+    setTimeout(() => {
+        card.style.transform = "scale(1) rotate(0deg)";
+    }, 100);
+
+    // 5. Play SFX
+    const sfx = document.getElementById('soldSfx');
+    if(sfx) sfx.play();
+});
+
+function triggerFireworks() {
+    const duration = 5 * 1000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 900 };
+
+    function randomInRange(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    const interval = setInterval(function() {
+        const timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+            return clearInterval(interval);
+        }
+
+        const particleCount = 50 * (timeLeft / duration);
+        // Fireworks coming from sides
+        confetti(Object.assign({}, defaults, { 
+            particleCount, 
+            origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } 
+        }));
+        confetti(Object.assign({}, defaults, { 
+            particleCount, 
+            origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } 
+        }));
+    }, 250);
+}
+
+function closeSoldCard() {
+    const overlay = document.getElementById('soldOverlay');
+    overlay.classList.add('opacity-0');
+    setTimeout(() => {
+        overlay.classList.add('hidden');
+        overlay.classList.remove('opacity-0');
+        document.body.style.overflow = 'auto';
+    }, 500);
+}
+        socket.on('updateGlobalStats', (stats) => {
+    // 1. Update the basic counts
+    document.getElementById('statTotal').innerText = stats.total;
+    document.getElementById('statSold').innerText = stats.sold;
+    document.getElementById('statUnsold').innerText = stats.unsold;
+    document.getElementById('tierBT').innerText = stats.tiers.bigtime;
+    document.getElementById('tierEP').innerText = stats.tiers.epic;
+    document.getElementById('tierST').innerText = stats.tiers.showtime;
+    document.getElementById('tierHL').innerText = stats.tiers.highlight;
+            renderSquadGrid();
+});
+
+    // 2. Generate the Colorful Franchise Stat Cards
+    function renderSquadGrid() {
+    const squadGrid = document.getElementById('statSquadGrid');
+    if (!squadGrid || currentTeams.length === 0) return;
+
+    squadGrid.innerHTML = currentTeams.map(t => {
+        const boughtCount = currentPlayers.filter(p => 
+            p.status === 'Sold' && p.soldTo.includes(t.name)
+        ).length;
+
+        const isFull = boughtCount >= t.maxCapacity;
+        const percent = (boughtCount / t.maxCapacity) * 100;
+
+        let themeClass = "card-cyan";
+        let accentColor = "text-cyan-400";
+        if (boughtCount >= 4) { themeClass = "card-gold"; accentColor = "text-yellow-400"; }
+        if (isFull) { themeClass = "card-full"; accentColor = "text-red-500"; }
+
+        return `
+            <div onclick="openSquadModal('${t.name}')" class="team-stat-card ${themeClass} flex flex-col justify-between cursor-pointer hover:scale-105 transition-transform">
+                <!-- Top Row: Logo and Name -->
+                <div class="flex items-center gap-2 mb-1">
+                    ${t.logoUrl ? `<img src="${t.logoUrl}" class="w-4 h-4 rounded-full object-contain">` : `<i class="fa-solid fa-shield text-[8px] opacity-20"></i>`}
+                    <span class="text-[8px] font-black uppercase tracking-tighter text-gray-400 truncate">${t.name}</span>
+                </div>
+                
+                <!-- Middle Row: Main Stats -->
+                <div class="flex items-center justify-between">
+                    <div class="squad-number leading-none">
+                        <span class="text-xl font-black text-white">${boughtCount}</span>
+                        <span class="text-[8px] font-bold text-gray-600">/${t.maxCapacity}</span>
+                    </div>
+                    
+                    <!-- Smaller Circular indicator -->
+                    <div class="w-6 h-6 relative flex items-center justify-center">
+                        <svg class="transform -rotate-90" viewBox="0 0 32 32">
+                            <circle cx="16" cy="16" r="14" stroke="rgba(255,255,255,0.05)" stroke-width="3" fill="transparent" />
+                            <circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="3" fill="transparent" 
+                                    class="${accentColor}"
+                                    stroke-dasharray="88" 
+                                    stroke-dashoffset="${88 - (88 * percent / 100)}" 
+                                    stroke-linecap="round" />
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Bottom Label -->
+                <div class="text-[6px] font-black uppercase tracking-[0.2em] ${isFull ? 'text-red-500' : 'text-gray-600'}">
+                    ${isFull ? 'SQUAD FULL' : 'RECRUITING...'}
+                </div>
+            </div>`;
+    }).join('');
+        }
+        function announceBid(team, amount) {
+    if (!window.speechSynthesis) return;
+    // Cancel previous speech to avoid overlap
+    window.speechSynthesis.cancel();
+    const text = `Bid by ${team}, ${amount} million`;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.pitch = 1;
+    utterance.rate = 1.1;
+    window.speechSynthesis.speak(utterance);
+        }
+        function openSquadModal(teamName) {
+    const team = currentTeams.find(t => t.name === teamName);
+    const squad = currentPlayers.filter(p => p.soldTo.includes(teamName));
+    
+    document.getElementById('modalTeamName').innerText = teamName;
+    document.getElementById('modalTeamLogo').src = team.logoUrl || 'https://via.placeholder.com/100?text=LOGO';
+    
+    const list = document.getElementById('modalSquadList');
+    list.innerHTML = squad.length ? squad.map(p => `
+        <div class="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/5">
+            <div class="flex items-center gap-4">
+                <img src="${p.imageUrl}" class="w-12 h-8 rounded object-cover border border-cyan-500/30">
+                <div>
+                    <p class="text-white font-bold text-sm">${p.name}</p>
+                    <p class="text-[9px] text-gray-500 uppercase tracking-widest">${p.cardType}</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <p class="text-cyan-400 font-black text-sm">${p.soldTo.split('(')[1].replace(')', '')}</p>
+                <p class="text-[9px] text-yellow-500">★ ${p.strength}</p>
+            </div>
+        </div>
+    `).join('') : '<p class="text-center text-gray-600 uppercase py-10 font-bold">No players signed yet</p>';
+
+    document.getElementById('squadModal').classList.remove('hidden');
+}
+function closeSquadModal() { document.getElementById('squadModal').classList.add('hidden'); }
+        // Update News Ticker (Call this in initialData and celebrateSold)
+function updateTicker() {
+    const topSold = [...currentPlayers].filter(p => p.status === 'Sold')
+        .sort((a,b) => {
+            const priceA = parseInt(a.soldTo.match(/\d+/));
+            const priceB = parseInt(b.soldTo.match(/\d+/));
+            return priceB - priceA;
+        })[0];
+
+    const tickerText = [
+        `🏆 Top Signing: ${topSold ? `${topSold.name} to ${topSold.soldTo}` : 'None Yet'}`,
+        `💰 Highest Purse: ${[...currentTeams].sort((a,b) => b.budget - a.budget)[0]?.name || '-'}`,
+        `🔥 Remaining Players: ${currentPlayers.filter(p => p.status === 'Available').length}`,
+        `⚡ Champions Auction League 2026-27 is LIVE`
+    ].join(' • ');
+    
+    document.getElementById('newsTicker').innerText = tickerText + ' • ' + tickerText;
+}
+
+// Smart Budget Math (Add this inside your renderAuction where captain sees buttons)
+function getSmartBudgetAdvice(team) {
+    const count = currentPlayers.filter(p => p.soldTo.includes(team.name)).length;
+    const remainingSlots = team.maxCapacity - count;
+    if (remainingSlots <= 1) return `Final Slot: Spend All!`;
+    
+    // Logic: Reserve at least 2M for every other remaining slot
+    const maxSafeBid = team.budget - ((remainingSlots - 1) * 2);
+    return `Max Safe Bid: ${maxSafeBid}M`;
+}
+        async function uploadLogo(teamId) {
+    const file = await new Promise(resolve => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.onchange = () => resolve(input.files[0]);
+        input.click();
+    });
+    if (!file) return;
+    const url = await uploadToImgBB(file);
+    if (url) socket.emit('updateTeamLogo', { teamId, logoUrl: url });
+        }
+        function setAtmosphere(tier) {
+    const body = document.body;
+    const subHeader = document.getElementById('subHeader');
+    const headerBar = document.getElementById('headerBar');
+    
+    // Remove all previous atmospheres
+    body.classList.remove('atmo-big-time', 'atmo-epic', 'atmo-showtime', 'atmo-highlight');
+    
+    if (!tier) return; // Default state
+
+    const cleanTier = tier.toUpperCase().trim();
+    
+    if (cleanTier === "BIG TIME") {
+        body.classList.add('atmo-big-time');
+        headerBar.style.background = "linear-gradient(90deg, #fbbf24, #d97706)";
+        headerBar.style.boxShadow = "0 0 20px #fbbf24";
+        subHeader.className = "text-yellow-500 font-black tracking-[0.5em] text-xs uppercase mb-2";
+        switchTrack('hype'); // Trigger hype music for Big Time
+    } 
+    else if (cleanTier === "SHOWTIME") {
+        body.classList.add('atmo-showtime');
+        headerBar.style.background = "linear-gradient(90deg, #10b981, #059669)";
+        headerBar.style.boxShadow = "0 0 20px #10b981";
+        subHeader.className = "text-green-400 font-black tracking-[0.5em] text-xs uppercase mb-2";
+    }
+    else if (cleanTier === "HIGHLIGHT") {
+        body.classList.add('atmo-highlight');
+        headerBar.style.background = "linear-gradient(90deg, #94a3b8, #475569)";
+        headerBar.style.boxShadow = "0 0 20px #94a3b8";
+        subHeader.className = "text-gray-400 font-black tracking-[0.5em] text-xs uppercase mb-2";
+    }
+    else {
+        // Default / EPIC
+        body.classList.add('atmo-epic');
+        headerBar.style.background = "linear-gradient(90deg, #00e5ff, #eaff00)";
+        headerBar.style.boxShadow = "0 0 20px #00e5ff";
+        subHeader.className = "text-cyan-400 font-black tracking-[0.5em] text-xs uppercase mb-2";
+        if(activeMode !== 'normal') switchTrack('normal');
+    }
+        }
+        // 1. RECEIVER: Update the number on screen for everyone
+socket.on('ghostWatchCount', (count) => {
+    const el = document.getElementById('ghostCount');
+    const container = document.getElementById('ghostWatchContainer');
+    if (el) {
+        el.innerText = `${count} ${count === 1 ? 'Captain' : 'Captains'} Hovering`;
+        
+        // Change appearance if more than 2 people are hovering
+        if (count > 2) container.classList.add('ghost-active');
+        else container.classList.remove('ghost-active');
+    }
+});
+
+// 2. EMITTER: For Captains only
+function setupGhostWatch() {
+    if (user && user.role === 'captain') {
+        const dashboard = document.getElementById('dashboard');
+        
+        // Detect if the tab is active
+        document.addEventListener('visibilitychange', () => {
+            socket.emit('updateFocus', document.visibilityState === 'visible');
+        });
+
+        // Detect if they are "interacting" with the auction block
+        const auctionArea = document.getElementById('auctionDisplay');
+        if (auctionArea) {
+            auctionArea.addEventListener('mouseenter', () => socket.emit('updateFocus', true));
+            auctionArea.addEventListener('mouseleave', () => socket.emit('updateFocus', false));
+            
+            // Mobile support
+            auctionArea.addEventListener('touchstart', () => socket.emit('updateFocus', true));
+            auctionArea.addEventListener('touchend', () => {
+                setTimeout(() => socket.emit('updateFocus', false), 5000); // 5 sec delay for mobile
+            });
+        }
+    }
+}
+        function updateStatsUI(stats) {
+    if (!stats) return;
+
+    // Update Top Counters
+    const mapping = {
+        'statTotal': stats.total,
+        'statSold': stats.sold,
+        'statUnsold': stats.unsold,
+        'tierBT': stats.tiers.bigtime,
+        'tierEP': stats.tiers.epic,
+        'tierST': stats.tiers.showtime,
+        'tierHL': stats.tiers.highlight
+    };
+
+    for (let id in mapping) {
+        const el = document.getElementById(id);
+        if (el) el.innerText = mapping[id] !== undefined ? mapping[id] : 0;
+    }
+
+    // Refresh the visuals
+    renderSquadGrid();
+    if (typeof renderScarcityMap === 'function') renderScarcityMap();
+}
+
+// Ensure the real-time listener uses the same helper
+socket.on('updateGlobalStats', (stats) => {
+    updateStatsUI(stats);
+});
+
+// Call this inside your startApp() function
+                
+            </script>
+    <!-- IMAGE ZOOM MODAL -->
+<div id="imageZoomModal" class="hidden fixed inset-0 z-[300] bg-black/95 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300" onclick="closeZoom()">
+    <button class="absolute top-8 right-8 text-white/50 hover:text-white text-5xl transition-all">&times;</button>
+    <div class="relative group" onclick="event.stopPropagation()">
+        <!-- Decorative border for the zoomed image -->
+        <div class="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-yellow-400 rounded-2xl blur opacity-30"></div>
+        <img id="zoomedImage" src="" class="relative max-w-full max-h-[85vh] object-contain rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10">
+        <p class="text-center text-gray-500 text-xs mt-4 uppercase tracking-[0.3em] font-black">Tap anywhere outside to close</p>
+    </div>
+</div>
+        <footer class="main-footer">
+            <center>
+        <div style="width: 50px; height: 2px; background: linear-gradient(90deg, #10b981, #f59e0b); margin: 0 auto 20px; opacity: 0.5;"></div>
+        <p style="font-size: 0.75rem; color: #64748b; line-height: 1.6;">
+            © Copyright: <span class="dev-name">Anubhav (Developer)</span> &
+            <span class="owner-name"> (NEXUS LEGENDS)</span> 
+            2026-27 | All Rights Reserved
+        </p>
+            </center>
+    </footer>
+    <!-- CINEMATIC SLIDESHOW OVERLAY -->
+<div id="slideshowOverlay" class="hidden fixed inset-0 z-[400] bg-[#0a0f16] flex flex-col items-center p-6 md:p-10 animate-in fade-in duration-700 overflow-y-auto">
+    
+    <!-- Local Close Button -->
+    <button onclick="localCloseSlideshow()" class="absolute top-6 right-6 text-white/30 hover:text-white text-3xl z-[450]">
+        <i class="fa-solid fa-circle-xmark"></i>
+    </button>
+
+    <div class="flex flex-col items-center mt-10 mb-10 text-center">
+        <span class="text-orange-500 font-black tracking-[0.3em] text-[10px] uppercase mb-2">Reviewing Unsold Legends</span>
+        <h2 class="text-3xl md:text-4xl font-black text-white italic uppercase">ACCELERATED <span class="text-orange-500">SHOWCASE</span></h2>
+        <div class="h-1 w-20 bg-orange-500 mt-3 rounded-full shadow-[0_0_15px_#f97316]"></div>
+    </div>
+
+    <!-- MAIN CONTENT AREA (The part that was empty) -->
+    <div id="slideshowContent" class="w-full max-w-6xl flex flex-col lg:flex-row items-center justify-center gap-10 lg:gap-20 transition-all duration-700 flex-1">
+        <!-- JS will inject content here -->
+    </div>
+
+    <div class="w-full mt-10 pb-10 flex flex-col items-center gap-4">
+        <div id="slideshowDots" class="flex gap-2"></div>
+        <p class="text-gray-600 font-bold text-[8px] uppercase tracking-[0.3em]">Nexus Legends FC | Unsold Gallery</p>
+    </div>
+</div>
+    <!-- SOLD FLASHCARD OVERLAY -->
+<div id="soldOverlay" class="hidden fixed inset-0 z-[800] bg-black/90 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-500" onclick="closeSoldCard()">
+    
+    <!-- THE PORTRAIT CARD -->
+    <div class="relative w-full max-w-[320px] aspect-[2/3] bg-gradient-to-b from-yellow-400 via-yellow-600 to-black rounded-[2.5rem] p-1 shadow-[0_0_80px_rgba(250,204,21,0.4)] transform transition-all duration-700 scale-90" onclick="event.stopPropagation()">
+        
+        <!-- Inner Border & Content -->
+        <div class="w-full h-full bg-[#0a0f16] rounded-[2.3rem] overflow-hidden flex flex-col items-center relative">
+            
+            <!-- Header Status -->
+            <div class="mt-6 bg-red-600 text-white px-6 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.3em] shadow-lg animate-pulse">
+                Sold Out
+            </div>
+
+            <!-- Player Image -->
+            <div class="mt-8 w-48 h-48 rounded-full border-4 border-yellow-500/50 p-1 shadow-2xl">
+                <img id="soldPlayerImg" src="" class="w-full h-full object-cover rounded-full bg-gray-900">
+            </div>
+
+            <!-- Player Name -->
+            <h2 id="soldPlayerName" class="mt-6 text-3xl font-black text-white uppercase italic tracking-tighter text-center px-4"></h2>
+            
+            <!-- Details Row -->
+            <div class="flex gap-4 mt-2">
+                <span id="soldPlayerStrength" class="text-yellow-400 font-black text-lg"></span>
+                <div class="w-px h-6 bg-white/10"></div>
+                <span id="soldPlayerTier" class="text-cyan-400 font-bold uppercase text-xs self-center"></span>
+            </div>
+
+            <!-- SOLD TO SECTION -->
+            <div class="absolute bottom-0 w-full bg-gradient-to-t from-yellow-500 to-yellow-600 p-6 text-center">
+                <p class="text-black font-black text-[10px] uppercase tracking-widest opacity-80">New Franchise Signee</p>
+                <h3 id="soldToTeam" class="text-2xl font-black text-black uppercase italic leading-tight"></h3>
+                <div class="mt-1 bg-black/20 rounded-lg py-1">
+                    <p id="soldPrice" class="text-white font-black text-xl"></p>
+                </div>
+            </div>
+
+            <!-- Decorative Elements -->
+            <div class="absolute top-4 left-4 opacity-20 text-yellow-500 text-4xl"><i class="fa-solid fa-crown"></i></div>
+        </div>
+    </div>
+</div>
+                <div id="squadModal" class="hidden fixed inset-0 z-[900] bg-black/80 flex items-center justify-center p-4" onclick="closeSquadModal()">
+    <div class="premium-glass w-full max-w-2xl rounded-[2.5rem] border border-cyan-500/30 overflow-hidden" onclick="event.stopPropagation()">
+        <div class="p-6 border-b border-white/10 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <img id="modalTeamLogo" src="" class="w-12 h-12 rounded-lg object-contain bg-black/40 p-1">
+                <h2 id="modalTeamName" class="text-2xl font-black text-white uppercase italic"></h2>
+            </div>
+            <button onclick="closeSquadModal()" class="text-gray-500 hover:text-white"><i class="fa-solid fa-circle-xmark text-2xl"></i></button>
+        </div>
+        <div id="modalSquadList" class="p-6 max-h-[60vh] overflow-y-auto space-y-3"></div>
+    </div>
+                </div>
+</body>
+</html>
