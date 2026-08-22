@@ -924,6 +924,19 @@ body {
         Clear Only Player Roster
     </button>
 </div>
+    <!-- ADMIN RADIO CONTROL -->
+<div id="adminRadioPanel" class="hidden premium-glass p-6 rounded-[2rem] border border-purple-500/20 mt-4 space-y-4">
+    <h3 class="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+        <i class="fa-solid fa-radio text-purple-400"></i> Nexus Radio Management
+    </h3>
+    <div class="flex gap-2">
+        <input id="musicUrlInput" type="text" placeholder="Paste MP3/Catbox Link..." 
+               class="flex-1 bg-gray-900 border border-white/10 p-3 rounded-xl text-[10px] text-white outline-none focus:border-purple-500">
+        <button onclick="injectMusic()" class="bg-purple-600 text-white font-black px-6 rounded-xl text-[10px] uppercase hover:bg-purple-500 transition-all">
+            Inject Track
+        </button>
+    </div>
+</div>
     
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <input id="uEmail" type="email" placeholder="Official Email" class="w-full bg-gray-900 border border-white/10 p-3 rounded-xl text-white outline-none focus:border-cyan-400">
@@ -1022,6 +1035,7 @@ body {
     let tempEmail = "";
     let authType = "";
     let priceChart;
+    let bgPlaylist = [];
 // Update initPriceChart to accept data
 function initPriceChart(historyData = []) {
     const ctx = document.getElementById('priceChart').getContext('2d');
@@ -1185,6 +1199,7 @@ function startApp() {
     document.getElementById('authOverlay').classList.add('hidden');
     document.getElementById('dashboard').classList.remove('hidden');
     document.getElementById('adminDirectAssignPanel').classList.remove('hidden');
+    document.getElementById('adminRadioPanel').classList.remove('hidden');
     document.getElementById('userName').innerText = user.name;
     document.getElementById('userRole').innerText = user.role;
     setupGhostWatch();
@@ -1214,23 +1229,44 @@ function startApp() {
 }
 
     socket.on('initialData', (data) => {
-        currentPlayers = data.players;
-        currentTeams = data.teams;
-        renderPlayers(data.players);
-        renderTeams(data.teams);
-        renderAuction(data.state);
-        if(data.chats) { 
-            document.getElementById('chatBox').innerHTML = ''; 
-            data.chats.forEach(addChatMessage);
-        }
-        if (data.history && data.history.length > 0) {
+    currentPlayers = data.players;
+    currentTeams = data.teams;
+    renderPlayers(data.players);
+    renderTeams(data.teams);
+    renderAuction(data.state);
+    
+    if(data.chats) { 
+        document.getElementById('chatBox').innerHTML = ''; 
+        data.chats.forEach(addChatMessage); 
+    }
+
+    if (data.history && data.history.length > 0) {
         console.log("📈 Restoring graph from database history...");
-        initPriceChart(data.history); 
+        initPriceChart(data.history);
     } else {
-        initPriceChart([]); // Initialize empty if no history
-        }
-        updateAssignDropdowns();
-    });
+        initPriceChart([]);
+    }
+
+    // --- ADD THESE MISSING TRIGGERS ---
+    if(data.stats) updateStatsUI(data.stats); // Updates Total Pool/Sold counters
+    renderSquadGrid();                        // Draws the colorful 3/8 cards
+    if(typeof updateTicker === 'function') updateTicker(); // Starts the News Ticker
+    // ----------------------------------
+
+    updateAssignDropdowns();
+    
+    // Music System
+    const customTracks = data.customMusic || [];
+    bgPlaylist = shuffleArray([...defaultPlaylist, ...customTracks]);
+    if (!bgAudio.src) loadPlaylistSong(0);
+
+    // --- FINAL CRITICAL TRIGGER ---
+    checkAssets(); // Starts the "Download Assets" prompt for new users
+});
+        socket.on('newTrackAdded', (url) => {
+    bgPlaylist.push(url); // Add to current session
+    console.log("🎵 Radio: New track synchronized.");
+});
 
     socket.on('updatePlayers', (p) => { 
     currentPlayers = p; 
@@ -1727,7 +1763,7 @@ function handleAddTeam() {
         // --- DYNAMIC PLAYLIST SYSTEM ---
 
 // 1. YOUR SONG LINKS
-const rawPlaylist = [
+const defaultPlaylist = [
     "https://files.catbox.moe/zyvgvh.mp3",
     "https://files.catbox.moe/15234c.mp3",
     "https://files.catbox.moe/ml3dnz.mp3",
@@ -1842,6 +1878,14 @@ bgAudio.addEventListener('error', function() {
     loadPlaylistSong(currentPlaylistIndex);
     if (activeMode === 'normal') bgAudio.play();
 });
+        function injectMusic() {
+    const input = document.getElementById('musicUrlInput');
+    const url = input.value.trim();
+    if (!url) return alert("Please paste a link first.");
+    
+    socket.emit('addMusicTrack', url);
+    input.value = '';
+        }
 
 // Updated Start Audio function for the Volume Popup
 function startAuctionAudio() {
@@ -2884,16 +2928,6 @@ socket.on('updateGlobalStats', (stats) => {
         <p class="text-center text-gray-500 text-xs mt-4 uppercase tracking-[0.3em] font-black">Tap anywhere outside to close</p>
     </div>
 </div>
-        <footer class="main-footer">
-            <center>
-        <div style="width: 50px; height: 2px; background: linear-gradient(90deg, #10b981, #f59e0b); margin: 0 auto 20px; opacity: 0.5;"></div>
-        <p style="font-size: 0.75rem; color: #64748b; line-height: 1.6;">
-            © Copyright: <span class="dev-name">Anubhav (Developer)</span> &
-            <span class="owner-name"> (NEXUS LEGENDS)</span> 
-            2026-27 | All Rights Reserved
-        </p>
-            </center>
-    </footer>
     <!-- CINEMATIC SLIDESHOW OVERLAY -->
 <div id="slideshowOverlay" class="hidden fixed inset-0 z-[400] bg-[#0a0f16] flex flex-col items-center p-6 md:p-10 animate-in fade-in duration-700 overflow-y-auto">
     
@@ -2915,7 +2949,7 @@ socket.on('updateGlobalStats', (stats) => {
 
     <div class="w-full mt-10 pb-10 flex flex-col items-center gap-4">
         <div id="slideshowDots" class="flex gap-2"></div>
-        <p class="text-gray-600 font-bold text-[8px] uppercase tracking-[0.3em]">Nexus Legends FC | Unsold Gallery</p>
+        <p class="text-gray-600 font-bold text-[8px] uppercase tracking-[0.3em]">PES PARK| Unsold Gallery</p>
     </div>
 </div>
     <!-- SOLD FLASHCARD OVERLAY -->
