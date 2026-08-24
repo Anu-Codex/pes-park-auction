@@ -2732,16 +2732,7 @@ function closeSoldCard() {
             </div>`;
     }).join('');
         }
-        function announceBid(team, amount) {
-    if (!window.speechSynthesis) return;
-    // Cancel previous speech to avoid overlap
-    window.speechSynthesis.cancel();
-    const text = `Bid by ${team}, ${amount} million`;
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.pitch = 1;
-    utterance.rate = 1.1;
-    window.speechSynthesis.speak(utterance);
-        }
+        
         function openSquadModal(teamName) {
     const team = currentTeams.find(t => t.name === teamName);
     const squad = currentPlayers.filter(p => p.soldTo.includes(teamName));
