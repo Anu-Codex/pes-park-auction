@@ -1284,26 +1284,7 @@ let lastHighestBidder = "";
 let lastBidAmount = 0;
 
 socket.on('updateAuction', (state) => {
-    // 1. Always run the original render function to update the UI
     renderAuction(state);
-
-    // 2. Check if a new bid was placed
-    if (state && state.highestBidder !== 'No Bids Yet') {
-        // Only announce if the bidder or the amount has actually changed
-        if (state.highestBidder !== lastHighestBidder || state.currentBid !== lastBidAmount) {
-            
-            // Trigger the Voice Feature
-            announceBid(state.highestBidder, state.currentBid);
-            
-            // Update tracking variables
-            lastHighestBidder = state.highestBidder;
-            lastBidAmount = state.currentBid;
-        }
-    } else {
-        // Reset tracking if auction is cancelled or new player starts
-        lastHighestBidder = "";
-        lastBidAmount = 0;
-    }
 });
     socket.on('newMessage', addChatMessage);
 
@@ -2817,7 +2798,7 @@ function getSmartBudgetAdvice(team) {
         headerBar.style.background = "linear-gradient(90deg, #fbbf24, #d97706)";
         headerBar.style.boxShadow = "0 0 20px #fbbf24";
         subHeader.className = "text-yellow-500 font-black tracking-[0.5em] text-xs uppercase mb-2";
-        switchTrack('hype'); // Trigger hype music for Big Time
+        
     } 
     else if (cleanTier === "SHOWTIME") {
         body.classList.add('atmo-showtime');
@@ -2837,7 +2818,6 @@ function getSmartBudgetAdvice(team) {
         headerBar.style.background = "linear-gradient(90deg, #00e5ff, #eaff00)";
         headerBar.style.boxShadow = "0 0 20px #00e5ff";
         subHeader.className = "text-cyan-400 font-black tracking-[0.5em] text-xs uppercase mb-2";
-        if(activeMode !== 'normal') switchTrack('normal');
     }
         }
         // 1. RECEIVER: Update the number on screen for everyone
