@@ -1790,7 +1790,7 @@ const allAudioElements = [bgAudio, tracks.intro, tracks.hype];
 
 function loadPlaylistSong(index) {
     if (index >= bgPlaylist.length) {
-        bgPlaylist = shuffleArray(rawPlaylist);
+        bgPlaylist = shuffleArray(defaultPlaylist);
         currentPlaylistIndex = 0;
     }
     console.log("Attempting to play:", bgPlaylist[currentPlaylistIndex]);
