@@ -842,6 +842,37 @@
             const val = document.getElementById('timerVal');
             if(val) val.innerText = t + "s";
         });
+        async function addPlayer() {
+            const file = document.getElementById('pImgFile').files[0];
+            let uploadedUrl = "";
+            if (file) {
+                uploadedUrl = await uploadToImgBB(file);
+                if (!uploadedUrl) return alert("Image upload failed!");
+            }
+            const data = { 
+                name: document.getElementById('pName').value.trim(), 
+                strength: Number(document.getElementById('pStrength').value) || 0, 
+                cardType: document.getElementById('pType').value, 
+                baseValue: Number(document.getElementById('pBase').value) || 2,
+                phone: document.getElementById('pPhone').value.trim(),
+                imageUrl: uploadedUrl
+            };
+            if(!data.name) return alert("Please enter a player name.");
+            socket.emit('addPlayer', data);
+            ['pName', 'pStrength', 'pBase', 'pPhone', 'pImgFile'].forEach(id => { 
+                if(document.getElementById(id)) document.getElementById(id).value = ''; 
+            });
+        }
+        async function uploadToImgBB(file) {
+            const apiKey = 'd78a83d90df20f4244a14823e5bdd755';
+            const formData = new FormData();
+            formData.append('image', file);
+            try {
+                const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, { method: 'POST', body: formData });
+                const data = await res.json();
+                return data.data.url;
+            } catch (e) { return null; }
+        }
 
         function renderPlayers(players) {
             document.getElementById('playerList').innerHTML = players.map(p => `
