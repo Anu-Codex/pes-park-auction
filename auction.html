@@ -199,9 +199,9 @@
 
 
 
-<!-- Floating Music Control -->
-<div id="musicToggle" class="fixed top-6 right-6 z-[150] hidden">
-    <button onclick="toggleMusic()" class="bg-cyan-500/20 hover:bg-cyan-500 border border-cyan-500/50 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg shadow-cyan-500/20">
+<!-- UPDATE THIS ELEMENT -->
+<div id="musicToggle" class="fixed top-6 right-6 z-[150]">
+    <button onclick="toggleMusic()" class="bg-cyan-500/25 hover:bg-cyan-500 border border-cyan-500/50 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg shadow-cyan-500/20">
         <i id="musicIcon" class="fa-solid fa-volume-high text-xs"></i>
     </button>
 </div>
@@ -921,7 +921,9 @@
                     <tr>
                         <td class="p-3 text-white">${t.name}</td>
                         <td class="p-3 text-cyan-400">${t.budget}M</td>
-                        <td class="p-3"><button onclick="uploadLogo('${t._id}')" class="text-cyan-400">${t.logoUrl ? '<i class="fa-solid fa-check"></i>' : '<i class="fa-solid fa-upload"></i>'}</button></td>
+                        <td class="p-3"><button onclick="uploadLogo('${t._id}')" class="text-cyan-400">
+        ${t.logoUrl ? `<img src="${t.logoUrl}" class="w-8 h-8 rounded-full object-contain bg-black/40 border border-white/10 mx-auto">` : '<i class="fa-solid fa-upload"></i>'}
+    </button></td>
                         <td class="p-3"><input type="number" value="${t.maxCapacity}" onchange="socket.emit('setTeamCapacity', { teamId: '${t._id}', capacity: this.value })" class="w-12 bg-black p-1 rounded text-center"></td>
                         <td class="p-3 text-center"><button onclick="confirmDeleteTeam('${t._id}', '${t.name}')" class="text-red-500"><i class="fa-solid fa-trash"></i></button></td>
                     </tr>
@@ -1216,6 +1218,183 @@
 
         if(user) startApp();
         else showAuthStep('choice');
+        async function uploadLogo(teamId) {
+    const file = await new Promise(resolve => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = () => resolve(input.files[0]);
+        input.click();
+    });
+    if (!file) return;
+    const url = await uploadToImgBB(file);
+    if (url) socket.emit('updateTeamLogo', { teamId, logoUrl: url });
+        }
+        function confirmDeleteTeam(id, name) {
+    if (user.role !== 'admin') return;
+    if (confirm(`⚠️ Are you sure you want to delete team "${name}"?`)) {
+        socket.emit('deleteTeam', id);
+    }
+        }
+        // --- DYNAMIC SEQUENTIAL PLAYLIST SYSTEM ---
+let defaultPlaylist = [
+    "https://files.catbox.moe/zyvgvh.mp3",
+    "https://files.catbox.moe/15234c.mp3",
+    "https://files.catbox.moe/ml3dnz.mp3",
+    "https://files.catbox.moe/y210nr.mp3"
+];
+
+let bgPlaylist = [...defaultPlaylist];
+let currentPlaylistIndex = 0;
+const bgAudio = document.getElementById('bgMusic');
+
+function loadPlaylistSong(index) {
+    // Loop back to the beginning if index exceeds playlist length
+    if (index >= bgPlaylist.length) {
+        currentPlaylistIndex = 0;
+    }
+    if (bgPlaylist.length === 0) return;
+    
+    bgAudio.src = bgPlaylist[currentPlaylistIndex];
+    bgAudio.load();
+    console.slog(`🎵 Playing track [${currentPlaylistIndex + 1}/${bgPlaylist.length}]:`, bgPlaylist[currentPlaylistIndex]);
+}
+
+// Try playing immediately when script loads
+window.addEventListener('DOMContentLoaded', () => {
+    loadPlaylistSong(currentPlaylistIndex);
+    bgAudio.volume = 0.3;
+    
+    bgAudio.play().then(() => {
+        console.log("🎵 Background music started automatically.");
+        document.getElementById('musicToggle').classList.remove('hidden');
+    }).catch((error) => {
+        console.log("🔒 Browser blocked autoplay. Waiting for user interaction...");
+        document.getElementById('musicToggle').classList.remove('hidden');
+        
+        // Fallback: Start music on the first click/tap anywhere on the page
+        const unlockAudio = () => {
+            bgAudio.play().then(() => {
+                console.log("🎵 Music unlocked via user interaction.");
+                window.removeEventListener('click', unlockAudio);
+                window.removeEventListener('touchstart', unlockAudio);
+            }).catch(err => console.log("Playback retry failed:", err));
+        };
+        
+        window.addEventListener('click', unlockAudio, { once: true });
+        window.addEventListener('touchstart', unlockAudio, { once: true });
+    });
+});
+
+// Toggle Mute/Unmute button handler
+function toggleMusic() {
+    const musicIcon = document.getElementById('musicIcon');
+    if (bgAudio.paused) {
+        bgAudio.play();
+        musicIcon.className = "fa-solid fa-volume-high text-xs";
+        musicIcon.style.color = "#00e5ff";
+    } else {
+        bgAudio.pause();
+        musicIcon.className = "fa-solid fa-volume-xmark text-xs";
+        musicIcon.style.color = "#ff4444";
+    }
+}
+// 1. Listen for initial custom music from server data
+socket.on('initialData', (data) => {
+    updateMegaLoader(70, "Data Received");
+    
+    // 1. Assign core state variables
+    currentPlayers = data.players;
+    currentTeams = data.teams;
+    
+    // 2. Render UI components
+    renderPlayers(data.players);
+    renderTeams(data.teams);
+    renderAuction(data.state);
+    
+    // 3. Update Statistics and Scarcity Map
+    if(data.stats) updateStatsUI(data.stats);
+    renderSquadGrid();
+    if(typeof renderScarcityMap === 'function') renderScarcityMap();
+    
+    // 4. Restore Chat Messages
+    if(data.chats) { 
+        const chatBox = document.getElementById('chatBox');
+        if(chatBox) {
+            chatBox.innerHTML = ''; 
+            data.chats.forEach(addChatMessage); 
+        }
+    }
+    
+    // 5. Initialize or Restore Price Index Graph History
+    if (data.history && data.history.length > 0) {
+        console.log("📈 Restoring graph from database history...");
+        initPriceChart(data.history);
+    } else {
+        initPriceChart([]);
+    }
+    
+    // 6. Dynamic Audio Playlist Integration (Merges default tracks + DB tracks)
+    if (data.customMusic && data.customMusic.length > 0) {
+        const combined = [...defaultPlaylist, ...data.customMusic.filter(url => !defaultPlaylist.includes(url))];
+        bgPlaylist = combined;
+    } else {
+        bgPlaylist = [...defaultPlaylist];
+    }
+    
+    // Start Audio Playback if not already active
+    if (!bgAudio.src || bgAudio.src === "") {
+        currentPlaylistIndex = 0;
+        loadPlaylistSong(currentPlaylistIndex);
+        bgAudio.volume = 0.3;
+        bgAudio.play().then(() => {
+            const musicToggle = document.getElementById('musicToggle');
+            if(musicToggle) musicToggle.classList.remove('hidden');
+        }).catch((error) => {
+            console.log("🔒 Autoplay locked. Awaiting user interaction.");
+            const musicToggle = document.getElementById('musicToggle');
+            if(musicToggle) musicToggle.classList.remove('hidden');
+            
+            const unlockAudio = () => {
+                bgAudio.play();
+                window.removeEventListener('click', unlockAudio);
+                window.removeEventListener('touchstart', unlockAudio);
+            };
+            window.addEventListener('click', unlockAudio, { once: true });
+            window.addEventListener('touchstart', unlockAudio, { once: true });
+        });
+    }
+
+    // 7. Update Admin Dropdowns & Check Assets
+    updateAssignDropdowns();
+    if(typeof checkAssets === 'function') checkAssets();
+    
+    // 8. Finalize Loader
+    setTimeout(() => updateMegaLoader(100, "Ready for Action"), 500);
+});
+
+// 2. Real-time listener when Admin injects a song from the website
+socket.on('newTrackAdded', (url) => {
+    if (!bgPlaylist.includes(url)) {
+        bgPlaylist.push(url); // Append to the active sequence
+        console.log("🎵 Playlist updated with new track. Total tracks:", bgPlaylist.length);
+    }
+});
+
+// 3. Play next song sequentially when current track finishes
+bgAudio.addEventListener('ended', function() {
+    currentPlaylistIndex++;
+    loadPlaylistSong(currentPlaylistIndex);
+    bgAudio.play().catch(e => console.log("Auto-play next track restricted:", e));
+});
+
+// Error fallback: Skip broken audio links automatically
+bgAudio.addEventListener('error', function() {
+    console.log("⚠️ Track failed to load, skipping to next sequence...");
+    currentPlaylistIndex++;
+    loadPlaylistSong(currentPlaylistIndex);
+    bgAudio.play().catch(e => console.log("Skip playback failed"));
+});
     </script>
 </body>
 </html>
