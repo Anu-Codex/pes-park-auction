@@ -1359,11 +1359,11 @@ socket.on('initialData', (data) => {
     setTimeout(() => updateMegaLoader(100, "Ready for Action"), 500);
 });
 
-// 2. Real-time listener when Admin injects a song from the website
+// --- DYNAMIC RADIO TRACK SYNCHRONIZER ---
 socket.on('newTrackAdded', (url) => {
     if (!bgPlaylist.includes(url)) {
-        bgPlaylist.push(url); // Append to the active sequence
-        console.log("🎵 Playlist updated with new track. Total tracks:", bgPlaylist.length);
+        bgPlaylist.push(url);
+        console.log("🎵 Playlist dynamically updated. Total tracks:", bgPlaylist.length);
     }
 });
 
@@ -1381,6 +1381,15 @@ bgAudio.addEventListener('error', function() {
     loadPlaylistSong(currentPlaylistIndex);
     bgAudio.play().catch(e => console.log("Skip playback failed"));
 });
+        function injectMusic() {
+    const input = document.getElementById('musicUrlInput');
+    const url = input.value.trim();
+    if (!url) return alert("Please paste a link first.");
+    
+    socket.emit('addMusicTrack', url);
+    input.value = '';
+    alert("🎵 Track sent to Nexus Radio!");
+        }
     </script>
 </body>
 </html>
