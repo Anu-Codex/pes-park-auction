@@ -819,19 +819,7 @@
             initPriceChart();
         }
 
-        socket.on('initialData', (data) => {
-            currentPlayers = data.players;
-            currentTeams = data.teams;
-            renderPlayers(data.players);
-            renderTeams(data.teams);
-            renderAuction(data.state);
-            if(data.stats) updateStatsUI(data.stats);
-            renderSquadGrid();
-            updateAssignDropdowns();
-            if(data.chats) { document.getElementById('chatBox').innerHTML = ''; data.chats.forEach(addChatMessage); }
-            if(data.history) initPriceChart(data.history);
-            updateMegaLoader(100, "Ready");
-        });
+        
 
         socket.on('updatePlayers', (p) => { currentPlayers = p; filterPlayers(); updateAssignDropdowns(); });
         socket.on('updateTeams', (t) => { currentTeams = t; renderTeams(t); renderSquadGrid(); updateAssignDropdowns(); });
