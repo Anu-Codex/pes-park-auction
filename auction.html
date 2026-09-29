@@ -875,6 +875,11 @@
                         ${user && user.role === 'admin' && p.status === 'Available' ? `
                             <button onclick="socket.emit('startAuction', { playerId: '${p._id}', baseValue: ${p.baseValue}, isHidden: false })" class="bg-cyan-400 text-black text-[9px] px-3 py-1 rounded font-black">START</button>
                         ` : `<span class="text-gray-500 text-[9px]">${p.soldTo || '-'}</span>`}
+                        ${user && user.role === 'admin' ? `
+                    <button onclick="confirmDeletePlayer('${p._id}', '${p.name}')" class="text-red-500 hover:text-red-400 transition" title="Delete Player">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                ` : ''}
                     </td>
                 </tr>
             `).join('');
@@ -918,6 +923,13 @@
                 const bonusSelect = document.getElementById('bonusTeamSelect');
                 if (bonusSelect) bonusSelect.innerHTML = teams.map(t => `<option value="${t.name}">${t.name}</option>`).join('');
             }
+        }
+        function confirmDeletePlayer(playerId, playerName) {
+    if (user && user.role === 'admin') {
+        if (confirm(`⚠️ Are you sure you want to delete legend "${playerName}" from the roster?`)) {
+            socket.emit('deletePlayer', playerId);
+        }
+    }
         }
 
         function renderSquadGrid() {
